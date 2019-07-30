@@ -10,3 +10,6 @@
 [submodule "vendor/grpc"]
 	path = vendor/grpc
 	url = https://github.com/grpc/grpc.git
+[submodule "vendor/tensorflow"]
+	path = vendor/tensorflow
+	url = https://github.com/tensorflow/tensorflow.git
