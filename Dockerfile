@@ -1,6 +1,7 @@
 # Copyright 2019 Qwant Research. Licensed under the terms of the Apache 2.0 license. See LICENSE in the project root.
 
-FROM ubuntu:18.04
+#FROM ubuntu:18.04
+FROM nvcr.io/nvidia/tensorflow:18.05-py3
 
 LABEL authors="Estelle Maudet, Pierre Jackman, Noël Martin, Christophe Servan"
 
@@ -19,9 +20,9 @@ RUN apt-get -y update && \
         git \
         cmake
 
-COPY . /opt/text-classifier
+COPY . /opt/text-nlu
 
-WORKDIR /opt/text-classifier
+WORKDIR /opt/text-nlu
 
 RUN ./install.sh
 

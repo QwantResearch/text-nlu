@@ -31,7 +31,7 @@ pushd vendor/$dep
 popd
 done
 
-echo "Installing text-classifier"
+echo "Installing text-nlu"
 mkdir -p $PREFIX
 rm -rf build
 mkdir -p build

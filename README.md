@@ -1,22 +1,21 @@
-Text Classifier
+Text NLU
 =========
 
-A new C++ API for Intention classification at Qwant Research.
-The API is based on [`fasttext`](https://fasttext.cc/).
+A new C++ API for NLU at Qwant Research.
+The API is based on [`fasttext`](https://fasttext.cc/) and Tensorflow.
 
 ## Installation
 ```
-git clone --recursive https://github.com/QwantResearch/text-classifier.git 
-cd text-classifier
-docker build -t text-classifier:latest .
+git clone --recursive https://github.com/QwantResearch/text-nlu.git 
+cd text-nlu
+docker build -t text-nlu:latest .
 ``` 
 
 ## Launch the API
 ```
-./text-classifier --model-config <filename> [--port <port>] [--threads <nthreads>] [--debug]
+./text-nlu --model-config <filename> [--port <port>] [--threads <nthreads>] [--debug]
 
---model-config (-f)      config file in which all models are described (REQUIRED)
---port (-p)              port to use (default 9009)
+--model-config (-c)      config file in which all models are described (REQUIRED)
 --threads (-t)           number of threads (default 1)
 --debug (-d)             debug mode (default false)
 --help (-h)              show this message

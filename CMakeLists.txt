@@ -1,5 +1,5 @@
 # Copyright 2019 Qwant Research. Licensed under the terms of the Apache 2.0 license. See LICENSE in the project root.
-PROJECT(text-classifier)
+PROJECT(text-nlu)
 
 cmake_minimum_required(VERSION 3.5)
 
@@ -13,9 +13,10 @@ link_directories(/usr/local/lib/ /usr/lib/)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++11 -lpthread")
 
-set(CLASS_EXECUTABLE_API text-classifier)
+set(CLASS_EXECUTABLE_API text-nlu)
 
-set(CLASS_SOURCE_API ${PROJECT_SOURCE_DIR}/src/text-classifier.cpp
+set(CLASS_SOURCE_API ${PROJECT_SOURCE_DIR}/src/text-nlu.cpp
+                     ${PROJECT_SOURCE_DIR}/src/nlu.cpp
                      ${PROJECT_SOURCE_DIR}/src/rest_server.cpp
                      ${PROJECT_SOURCE_DIR}/src/tokenizer.cpp
                      ${PROJECT_SOURCE_DIR}/src/classifier.cpp

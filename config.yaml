@@ -1,11 +1,14 @@
 # models:
 #  name of the model:
-#    filename: file localization
+#    intent_model: file localization
+#    nlu_model: adress:port
 #    language: language of the model (for tokenization)
 port: 9009
 threads: 2
 debug: 0
+
 models:
-  language_identification: 
-    filename: resources/lid.176.ftz
-    language: xx
+  ner:
+    intent_model: resources/intent_model
+    nlu_model: localhost:9008
+    language: fr
