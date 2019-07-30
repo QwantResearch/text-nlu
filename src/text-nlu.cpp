@@ -14,7 +14,7 @@ int debug = 0;
 std::string API_config("");
 
 void usage() {
-  cout << "./text-classifier --config <filename> [--debug]\n\n"
+  cout << "./text-nlu --config <filename> [--debug]\n\n"
           "\t--config (-c)            config file in which all models and API configuration are set (needed)\n"
           "\t--debug (-d)             debug mode (default false)\n"
           "\t--help (-h)              Show this message\n"
@@ -69,9 +69,9 @@ int main(int argc, char **argv) {
   cout << "[INFO]\tUsing config file:\t" << API_config << endl;
   cout << "[INFO]\tCores available:\t" << hardware_concurrency() << endl;
   // creating the rest server, the options in the config file overite the ones given in the arguments.
-  rest_server classification_api(API_config, threads, debug);
+  rest_server nlu_api(API_config, threads, debug);
 
-  classification_api.init();
-  classification_api.start();
-  classification_api.shutdown();
+  nlu_api.init();
+  nlu_api.start();
+  nlu_api.shutdown();
 }

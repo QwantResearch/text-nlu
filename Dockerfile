@@ -1,7 +1,7 @@
 # Copyright 2019 Qwant Research. Licensed under the terms of the Apache 2.0 license. See LICENSE in the project root.
 
 #FROM ubuntu:18.04
-FROM nvcr.io/nvidia/tensorflow:18.05-py3
+FROM nvcr.io/nvidia/tensorflow:18.11-py3
 
 LABEL authors="Estelle Maudet, Pierre Jackman, Noël Martin, Christophe Servan"
 
@@ -14,11 +14,17 @@ RUN apt-get -y update && \
     apt-get -y install \
         cmake \
         g++ \
-        libboost-locale1.65-dev \
-        libboost-regex1.65-dev \
+        libboost-locale-dev \
+        libboost-regex-dev \
         libyaml-cpp-dev \
-        git \
-        cmake
+        git 
+
+ADD https://cmake.org/files/v3.9/cmake-3.9.0-Linux-x86_64.sh /tmp/cmake-3.9.0-Linux-x86_64.sh
+RUN mkdir /opt/cmake
+RUN sh /tmp/cmake-3.9.0-Linux-x86_64.sh --prefix=/opt/cmake --skip-license
+RUN ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
+RUN cmake --version
+
 
 COPY . /opt/text-nlu
 
