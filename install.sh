@@ -19,14 +19,14 @@ pushd vendor/qnlp-toolkit
 	bash install.sh $PREFIX
 popd
  
-for dep in pistache json
+for dep in pistache json grpc
 do
 pushd vendor/$dep
 	rm -rf build
 	mkdir -p build
 	pushd build
 		cmake .. -DCMAKE_INSTALL_PREFIX="${PREFIX}" -DCMAKE_BUILD_TYPE=Release
-		make -j 4 && make install
+		make -j && make install
 	popd
 popd
 done
@@ -37,5 +37,5 @@ rm -rf build
 mkdir -p build
 pushd build
 	cmake .. -DCMAKE_INSTALL_PREFIX="${PREFIX}" -DCMAKE_BUILD_TYPE=Release 
-	make -j 4 && make install
+	make -j && make install
 popd
