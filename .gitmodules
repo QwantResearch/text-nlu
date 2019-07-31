@@ -13,3 +13,6 @@
 [submodule "vendor/tensorflow"]
 	path = vendor/tensorflow
 	url = https://github.com/tensorflow/tensorflow.git
+[submodule "vendor/tfserving"]
+	path = vendor/tfserving
+	url = https://github.com/tensorflow/serving.git
