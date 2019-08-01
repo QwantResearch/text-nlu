@@ -2,6 +2,7 @@
 // license. See LICENSE in the project root.
 
 #include "rest_server.h"
+#include "nlu.h"
 #include "utils.h"
 
 rest_server::rest_server(std::string &config_file, int &threads, int debug) 
@@ -23,18 +24,21 @@ rest_server::rest_server(std::string &config_file, int &threads, int debug)
         {
             std::string domain=modelnode.first.as<std::string>();
             YAML::Node modelinfos = modelnode.second;
-            std::string filename=modelinfos["filename"].as<std::string>();
+            std::string intent_model_filename=modelinfos["intent_model"].as<std::string>();
+            std::string nlu_model_filename=modelinfos["nlu_model"].as<std::string>();
             std::string lang=modelinfos["language"].as<std::string>();
             try 
             {
                 // Creating the set of models for the API
-                if ((int) filename.size() == 0)
+                if ((int) intent_model_filename.size() == 0)
                 {
-                    cerr << "[ERROR]\tModel filename is not set for " << domain << endl;
+                    cerr << "[ERROR]\tModel intent_model_filename is not set for " << domain << endl;
                     continue;
                 }
-                cout << "[INFO]\t"<< domain << "\t" << filename << "\t" << lang ;
-                classifier* classifier_pointer = new classifier(filename, domain, lang);
+                cout << "[INFO]\t"<< domain << "\t" << intent_model_filename << "\t" << lang ;
+                classifier* classifier_pointer = new classifier(intent_model_filename, domain, lang);
+                shared_ptr<Channel> channel = CreateChannel(nlu_model_filename,grpc::InsecureChannelCredentials());
+                nlu* nlu_pointer = new nlu(channel, domain);
                 _list_classifs.push_back(classifier_pointer);
                 cout << "\t===> loaded" << endl;
             } 
@@ -58,6 +62,9 @@ rest_server::rest_server(std::string &config_file, int &threads, int debug)
         cerr << "[ERROR]\tNo classification model loaded, exiting." << endl;
         exit(1);
     }
+    
+    
+    
     // Creating the entry point of the REST API.
     Pistache::Port pport(port);
     Address addr(Ipv4::any(), pport);

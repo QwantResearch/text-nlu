@@ -29,12 +29,21 @@ bool nlu::getLocal()
 }
 
 
-nlu::nlu(const tensorflow::string& export_dir)
+nlu::nlu(const tensorflow::string& export_dir,std::string model_name_param)
 {
-    LoadModel(export_dir);
+    LoadModel(export_dir,model_name_param);
     _local=true;
     _debug_mode=0;
 }
+
+
+nlu::nlu(shared_ptr<Channel> channel,std::string model_name_param)
+{
+    LoadModel(channel,model_name_param);
+    _local=true;
+    _debug_mode=0;
+}
+
 
 nlu::nlu()
 {
@@ -43,7 +52,9 @@ nlu::nlu()
     _debug_mode=0;
 }
 
-bool nlu::LoadModel(std::string model_name_param,shared_ptr<grpc::Channel> channel)
+
+
+bool nlu::LoadModel(shared_ptr<Channel> channel,std::string model_name_param)
 {
     model_name=model_name_param;
     stub_=PredictionService::NewStub(channel);
@@ -83,7 +94,7 @@ std::vector<tensorflow::int32> nlu::PadBatch(
 
 
 // Loads a saved model.
-bool nlu::LoadModel(const tensorflow::string& export_dir) {
+bool nlu::LoadModel(const tensorflow::string& export_dir,std::string model_name_param) {
   tensorflow::SessionOptions session_options;
   tensorflow::RunOptions run_options;
 
@@ -96,10 +107,11 @@ bool nlu::LoadModel(const tensorflow::string& export_dir) {
     return false;
   }
   _local=true;
+  model_name=model_name_param;
   return true;
 }
 
-// Tanslates a batch of tokenizes sentences.
+// Process a batch of tokenizes sentences.
 bool nlu::NLUBatch(
     std::vector<std::vector<tensorflow::string> >& batch_tokens,
     std::vector<std::vector<tensorflow::string> >& output_batch_tokens) {
@@ -220,7 +232,7 @@ bool nlu::NLUBatch(
 }
 
 
-// Tanslates a batch of tokenizes sentences.
+// Process a batch of tokenizes sentences.
 bool nlu::NLUBatchOnline(
     std::vector<std::vector<tensorflow::string> >& batch_tokens,
     std::vector<std::vector<tensorflow::string> >& output_batch_tokens) {
@@ -363,7 +375,6 @@ bool nlu::NLUBatchOnline(
 // 
   // Collect results in C++ vectors.
   
-  // Collect results in C++ vectors.
   long prev=0;
   vector<string> vec_length;
   vector<string> vec_tags;
