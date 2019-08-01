@@ -45,3 +45,7 @@ echo "tf_cc_shared_object(  \
 ./configure
 bazel build  --config=opt //tensorflow:libtensorflow_qnlp.so
 popd
+
+pushd vendor/tfserving
+	bazel build -c opt tensorflow_serving/...
+popd
