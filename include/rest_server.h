@@ -17,6 +17,7 @@
 #include "yaml-cpp/yaml.h"
 
 #include "classifier.h"
+#include "nlu.h"
 #include "tokenizer.h"
 
 using namespace std;
@@ -37,6 +38,7 @@ private:
   int _debug_mode;
   int _nbr_threads;
   std::vector<classifier *> _list_classifs;
+  std::vector<nlu *> _list_nlu;
   std::shared_ptr<Http::Endpoint> httpEndpoint;
   Rest::Router router;
   typedef std::mutex Lock;

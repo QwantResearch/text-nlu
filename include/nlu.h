@@ -18,13 +18,16 @@
 #include <tensorflow/core/platform/init_main.h>
 #include <tensorflow/core/util/command_line_flags.h>
 
-#include <grpcpp/create_channel.h>
+// #include <grpcpp/create_channel.h>
+#include "grpcpp/create_channel.h"
+// #include <grpcpp/generic/generic_stub_impl.h>
 #include <grpcpp/security/credentials.h>
 #include <google/protobuf/map.h>
 #include <tensorflow/core/framework/tensor.h>
 #include <tensorflow/core/platform/types.h>
 #include <tensorflow/core/util/command_line_flags.h>
-// #include "tensorflow_serving/apis/prediction_service.grpc.pb.h"
+#include <tensorflow_serving/apis/prediction_service.grpc.pb.h>
+
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -101,11 +104,12 @@ class nlu
 {
     public:
         nlu();
-        nlu(const tensorflow::string&  filename);
+        nlu(const tensorflow::string&  filename,std::string model_name_param);
+        nlu(shared_ptr<Channel> channel,std::string model_name_param);
         void PrintBatch(const std::vector<std::vector<tensorflow::string> >& batch_tokens);
         std::vector<tensorflow::int32> PadBatch(std::vector<std::vector<tensorflow::string> >& batch_tokens);
-        bool LoadModel(const tensorflow::string& export_dir);
-        bool LoadModel(std::string model_name_param,shared_ptr<grpc::Channel> channel);
+        bool LoadModel(const tensorflow::string& export_dir,std::string model_name_param);
+        bool LoadModel(shared_ptr<Channel> channel,std::string model_name_param);
         bool NLUBatch(std::vector<std::vector<tensorflow::string> >& batch_tokens, std::vector<std::vector<tensorflow::string> >& output_batch_tokens);
         string callPredict(std::string model_name_param);
         bool NLUBatchOnline(vector< vector< string > >& batch_tokens, vector< vector< string > >& output_batch_tokens);
