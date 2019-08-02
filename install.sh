@@ -19,7 +19,7 @@ pushd vendor/qnlp-toolkit
 	bash install.sh $PREFIX
 popd
  
-for dep in pistache json grpc
+for dep in pistache json
 do
 pushd vendor/$dep
 	rm -rf build
@@ -31,50 +31,6 @@ pushd vendor/$dep
 popd
 done
 
-#pushd vendor/grpc
-#	./configure
-#	make -j
-#	make install
-#popd
-
-exit
-
-pushd vendor/tensorflow
-echo "tf_cc_shared_object(  \
-    name = \"libtensorflow_qnlp.so\",  \
-    linkopts = select({  \
-        \"//tensorflow:darwin\": [  \
-            \"-Wl,-exported_symbols_list\",   \
-            \"//tensorflow:tf_exported_symbols.lds\",  \
-        ],  \
-        \"//tensorflow:windows\": [],  \
-        \"//tensorflow:windows_msvc\": [],  \
-        \"//conditions:default\": [  \
-            \"-z defs\",  \
-            \"-s\",  \
-            \"-Wl,--version-script\",  \
-            \"//tensorflow:tf_version_script.lds\",  \
-        ],  \
-    }),  \
-    deps = [  \
-        \"//tensorflow:tf_exported_symbols.lds\",  \
-        \"//tensorflow:tf_version_script.lds\",  \
-        \"//tensorflow/c:c_api\",  \
-        \"//tensorflow/c/eager:c_api\",  \
-        \"//tensorflow/cc:cc_ops\",  \
-        \"//tensorflow/cc:client_session\",  \
-        \"//tensorflow/cc:scope\",  \
-        \"//tensorflow/core:tensorflow\",  \
-        \"//tensorflow/contrib/seq2seq:beam_search_ops_kernels\",  \
-        \"//tensorflow/contrib/seq2seq:beam_search_ops_op_lib\",  \
-    ],  \
-)  \
-" >> tensorflow/BUILD
-./configure
-bazel build  --config=opt //tensorflow:libtensorflow_qnlp.so
-popd
-
-exit
 
 echo "Installing text-nlu"
 mkdir -p $PREFIX
