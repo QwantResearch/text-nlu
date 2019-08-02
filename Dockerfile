@@ -52,10 +52,15 @@ RUN ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
 RUN cmake --version
 
 
-RUN git clone --recursive https://github.com/QwantResearch/text-nlu.git /opt/text-nlu && git checkout develop
+
+RUN git clone --recursive https://github.com/QwantResearch/text-nlu.git /opt/text-nlu
 #COPY . /opt/text-nlu
 
 WORKDIR /opt/text-nlu
+
+RUN git checkout develop
+
+RUN ln -s /usr/bin/python3 /usr/bin/python
 
 RUN bash ./tfinstall.sh
 
