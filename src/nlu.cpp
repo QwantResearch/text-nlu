@@ -29,18 +29,18 @@ bool nlu::getLocal()
 }
 
 
-nlu::nlu(const tensorflow::string& export_dir,std::string model_name_param)
+nlu::nlu(const tensorflow::string& export_dir,std::string& model_domain_param,std::string& lang)
 {
-    LoadModel(export_dir,model_name_param);
+    LoadModel(export_dir,model_domain_param,lang);
     _local=true;
     _debug_mode=0;
 }
 
 
-nlu::nlu(shared_ptr<Channel> channel,std::string model_name_param)
+nlu::nlu(shared_ptr<Channel> channel,std::string& model_domain_param,std::string& lang)
 {
-    LoadModel(channel,model_name_param);
-    _local=true;
+    LoadModel(channel,model_domain_param,lang);
+    _local=false;
     _debug_mode=0;
 }
 
@@ -54,12 +54,15 @@ nlu::nlu()
 
 
 
-bool nlu::LoadModel(shared_ptr<Channel> channel,std::string model_name_param)
+bool nlu::LoadModel(shared_ptr<Channel> channel,std::string& model_domain_param,std::string& lang)
 {
-    model_name=model_name_param;
+    _domain=model_domain_param;
     stub_=PredictionService::NewStub(channel);
     _local=false;
     _debug_mode=0;
+    _lang=lang;
+    _tokenizer=new tokenizer(lang,false);
+    return true;
 }
 
 // Displays a batch of tokens.
@@ -94,7 +97,7 @@ std::vector<tensorflow::int32> nlu::PadBatch(
 
 
 // Loads a saved model.
-bool nlu::LoadModel(const tensorflow::string& export_dir,std::string model_name_param) {
+bool nlu::LoadModel(const tensorflow::string& export_dir,std::string& model_domain_param,std::string& lang) {
   tensorflow::SessionOptions session_options;
   tensorflow::RunOptions run_options;
 
@@ -107,7 +110,9 @@ bool nlu::LoadModel(const tensorflow::string& export_dir,std::string model_name_
     return false;
   }
   _local=true;
-  model_name=model_name_param;
+  _domain=model_domain_param;
+  _lang=lang;
+  _tokenizer=new tokenizer(lang,false);
   return true;
 }
 
@@ -322,7 +327,7 @@ bool nlu::NLUBatchOnline(
   PredictResponse response;
   ClientContext context;
 
-  predictRequest.mutable_model_spec()->set_name(model_name);
+  predictRequest.mutable_model_spec()->set_name(_domain);
 
 //   google::protobuf::Map< std::string, tensorflow::Tensor >& inputs = *predictRequest.mutable_inputs();
   google::protobuf::Map< std::string, tensorflow::TensorProto >& inputs = *(predictRequest.mutable_inputs());

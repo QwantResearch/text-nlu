@@ -28,6 +28,8 @@
 #include <tensorflow/core/util/command_line_flags.h>
 #include <tensorflow_serving/apis/prediction_service.grpc.pb.h>
 
+#include "tokenizer.h"
+
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -104,22 +106,28 @@ class nlu
 {
     public:
         nlu();
-        nlu(const tensorflow::string&  filename,std::string model_name_param);
-        nlu(shared_ptr<Channel> channel,std::string model_name_param);
+        nlu(const tensorflow::string&  filename,std::string& model_domain_param,std::string& lang);
+        nlu(shared_ptr<Channel> channel,std::string& model_domain_param,std::string& lang);
+        ~nlu(){delete(_tokenizer);};
         void PrintBatch(const std::vector<std::vector<tensorflow::string> >& batch_tokens);
         std::vector<tensorflow::int32> PadBatch(std::vector<std::vector<tensorflow::string> >& batch_tokens);
-        bool LoadModel(const tensorflow::string& export_dir,std::string model_name_param);
-        bool LoadModel(shared_ptr<Channel> channel,std::string model_name_param);
+        bool LoadModel(const tensorflow::string& export_dir,std::string& model_domain_param,std::string& lang);
+        bool LoadModel(shared_ptr<Channel> channel,std::string& model_domain_param,std::string& lang);
         bool NLUBatch(std::vector<std::vector<tensorflow::string> >& batch_tokens, std::vector<std::vector<tensorflow::string> >& output_batch_tokens);
-        string callPredict(std::string model_name_param);
+//         string callPredict(std::string& model_domain_param);
         bool NLUBatchOnline(vector< vector< string > >& batch_tokens, vector< vector< string > >& output_batch_tokens);
         bool getLocal();
         void setDebugMode(int debug_mode);
+        std::string getDomain() { return _domain; }
+        std::string getLang() { return _lang; }
+        std::vector <std::string> tokenize(std::string &input){ return _tokenizer->tokenize(input);};
     private:
       tensorflow::SavedModelBundle bundle;
       shared_ptr<PredictionService::Stub> stub_;
       bool _local;
-      string model_name;
+      string _domain;
+      string _lang;
+      tokenizer * _tokenizer;
       int _debug_mode;
  
 };

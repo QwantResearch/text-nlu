@@ -56,14 +56,26 @@ private:
   void doClassificationBatchPost(const Rest::Request &request,
                                  Http::ResponseWriter response);
 
+  void doNLUGet(const Rest::Request &request,
+                           Http::ResponseWriter response);
+
+  void doNLUPost(const Rest::Request &request,
+                            Http::ResponseWriter response);
+
+  void doNLUBatchPost(const Rest::Request &request,
+                                 Http::ResponseWriter response);
+
   void fetchParamWithDefault(const json& j, 
                               string& domain, 
+                              string& lang, 
                               int& count,
                               float& threshold,
                               bool& debugmode);
 
   std::vector<std::pair<fasttext::real, std::string>>
-  askClassification(std::string &text, std::string &tokenized_text, std::string &domain, int count, float threshold);
+  askClassification(std::string &text, std::string &tokenized_text, std::string &domain, string &lang, int count, float threshold);
+  bool askNLU(std::string &text, json &output, string &domain, string &lang, bool debugmode);
+  bool askNLU(vector<vector<string> > &input, json &output, string &domain, string &lang, bool debugmode);
 
   void writeLog(string text_to_log) {}
 
