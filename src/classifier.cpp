@@ -8,7 +8,9 @@ classifier::prediction(std::string &text, std::string &tokenized, int count, flo
   std::vector<std::pair<fasttext::real, std::string>> results;
   if (*(text.end() - 1) != '\n')
     text.push_back('\n');
-  tokenized=_tokenizer->tokenize_str(text);
+  tokenizer * tokenizer_tmp=new tokenizer(_lang,true);
+  tokenized=tokenizer_tmp->tokenize_str(text);
+  delete(tokenizer_tmp);
 
   std::stringstream istr(tokenized);
   _model.predictLine(istr, results, count, threshold);

@@ -120,7 +120,7 @@ class nlu
         void setDebugMode(int debug_mode);
         std::string getDomain() { return _domain; }
         std::string getLang() { return _lang; }
-        std::vector <std::string> tokenize(std::string &input){ return _tokenizer->tokenize(input);};
+        std::vector <std::string> tokenize(std::string &input);
     private:
       tensorflow::SavedModelBundle bundle;
       shared_ptr<PredictionService::Stub> stub_;

@@ -414,3 +414,13 @@ void nlu::setDebugMode(int debug_mode)
 {
     _debug_mode=debug_mode;
 }
+
+std::vector <std::string> nlu::tokenize(std::string &input)
+{
+	tokenizer * tokenizer_tmp = new tokenizer(_lang,false);
+	std::vector <std::string> to_return = tokenizer_tmp->tokenize(input);
+	delete(tokenizer_tmp);
+	return to_return;
+}
+
+
