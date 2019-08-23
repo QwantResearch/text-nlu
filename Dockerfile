@@ -4,15 +4,6 @@ FROM ubuntu:18.04
 
 LABEL authors="Estelle Maudet, Pierre Jackman, Noël Martin, Christophe Servan"
 
-
-ENV http_proxy=http://10.100.9.1:2001
-ENV https_proxy=http://10.100.9.1:2001
-
-RUN echo "export http_proxy=http://10.100.9.1:2001" >> /etc/profile
-RUN echo "export https_proxy=http://10.100.9.1:2001" >> /etc/profile
-RUN echo "Acquire::http::Proxy \"http://10.100.9.1:2001\";" >> /etc/apt/apt.conf
-
-
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
 ENV TZ=Europe/Paris
