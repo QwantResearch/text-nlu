@@ -26,7 +26,6 @@ set(CLASS_SOURCE_API ${PROJECT_SOURCE_DIR}/src/text-nlu.cpp
                      ${PROJECT_SOURCE_DIR}/src/nlu.cpp
                      ${PROJECT_SOURCE_DIR}/src/rest_server.cpp
                      ${PROJECT_SOURCE_DIR}/src/tokenizer.cpp
-                     ${PROJECT_SOURCE_DIR}/src/classifier.cpp
                      ${PROJECT_SOURCE_DIR}/src/utils.cpp)
 
 add_executable(${CLASS_EXECUTABLE_API} ${CLASS_SOURCE_API})

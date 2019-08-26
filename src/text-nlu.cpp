@@ -16,6 +16,7 @@ std::string API_config("");
 void usage() {
   cout << "./text-nlu --config <filename> [--debug]\n\n"
           "\t--config (-c)            config file in which all models and API configuration are set (needed)\n"
+          "\t--threads (-t)           number of threads (default 1)\n"
           "\t--debug (-d)             debug mode (default false)\n"
           "\t--help (-h)              Show this message\n"
        << endl;

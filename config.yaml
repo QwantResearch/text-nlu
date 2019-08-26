@@ -5,10 +5,9 @@
 #    language: language of the model (for tokenization)
 port: 9009
 threads: 2
-debug: 0
+debug: 1
 
 models:
   ner:
-    intent_model: resources/intent_model
-    nlu_model: localhost:9008
+    nlu_model: path/to/nlu_model
     language: fr

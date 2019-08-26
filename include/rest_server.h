@@ -16,7 +16,6 @@
 #include <time.h>
 #include "yaml-cpp/yaml.h"
 
-#include "classifier.h"
 #include "nlu.h"
 #include "tokenizer.h"
 
@@ -27,7 +26,7 @@ using namespace Pistache;
 class rest_server {
 
 public:
-  rest_server(string &classif_config, int &threads, int debug_mode = 0);
+  rest_server(string &config_file, int &threads, int debug_mode = 0);
   ~rest_server(){httpEndpoint->shutdown();};
 
   void init();
@@ -37,7 +36,6 @@ public:
 private:
   int _debug_mode;
   int _nbr_threads;
-  std::vector<classifier *> _list_classifs;
   std::vector<nlu *> _list_nlu;
   std::shared_ptr<Http::Endpoint> httpEndpoint;
   Rest::Router router;
@@ -46,15 +44,6 @@ private:
   Lock nluLock;
 
   void setupRoutes();
-
-  void doClassificationGet(const Rest::Request &request,
-                           Http::ResponseWriter response);
-
-  void doClassificationPost(const Rest::Request &request,
-                            Http::ResponseWriter response);
-
-  void doClassificationBatchPost(const Rest::Request &request,
-                                 Http::ResponseWriter response);
 
   void doNLUGet(const Rest::Request &request,
                            Http::ResponseWriter response);
@@ -72,8 +61,6 @@ private:
                               float& threshold,
                               bool& debugmode);
 
-  std::vector<std::pair<fasttext::real, std::string>>
-  askClassification(std::string &text, std::string &tokenized_text, std::string &domain, string &lang, int count, float threshold);
   bool askNLU(std::string &text, json &output, string &domain, string &lang, bool debugmode);
   bool askNLU(vector<vector<string> > &input, json &output, string &domain, string &lang, bool debugmode);
 
