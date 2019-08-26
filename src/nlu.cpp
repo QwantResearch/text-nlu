@@ -423,4 +423,10 @@ std::vector <std::string> nlu::tokenize(std::string &input)
 	return to_return;
 }
 
-
+std::string nlu::tokenize_str(std::string &input)
+{
+	tokenizer * tokenizer_tmp = new tokenizer(_lang,false);
+	std::string to_return = tokenizer_tmp->tokenize_str(input);
+	delete(tokenizer_tmp);
+	return to_return;
+}

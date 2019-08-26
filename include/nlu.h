@@ -121,6 +121,7 @@ class nlu
         std::string getDomain() { return _domain; }
         std::string getLang() { return _lang; }
         std::vector <std::string> tokenize(std::string &input);
+        std::string tokenize_str(std::string &input);
     private:
       tensorflow::SavedModelBundle bundle;
       shared_ptr<PredictionService::Stub> stub_;

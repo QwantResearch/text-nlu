@@ -24,22 +24,12 @@ rest_server::rest_server(std::string &config_file, int &threads, int debug)
         {
             std::string domain=modelnode.first.as<std::string>();
             YAML::Node modelinfos = modelnode.second;
-            std::string intent_model_filename=modelinfos["intent_model"].as<std::string>();
             std::string nlu_model_filename=modelinfos["nlu_model"].as<std::string>();
             std::string lang=modelinfos["language"].as<std::string>();
             try 
             {
-                // Creating the set of models for the API
-                if ((int) intent_model_filename.size() == 0)
-                {
-                    cerr << "[ERROR]\tModel intent_model_filename is not set for " << domain << endl;
-                    continue;
-                }
-                cout << "[INFO]\t"<< domain << "\t" << intent_model_filename << "\t" << lang ;
-                classifier* classifier_pointer = new classifier(intent_model_filename, domain, lang);
 //                 shared_ptr<Channel> channel = CreateChannel(nlu_model_filename,grpc::InsecureChannelCredentials());
                 nlu* nlu_pointer = new nlu(nlu_model_filename, domain, lang);
-                _list_classifs.push_back(classifier_pointer);
                 _list_nlu.push_back(nlu_pointer);
                 cout << "\t===> loaded" << endl;
             } 
@@ -58,9 +48,9 @@ rest_server::rest_server(std::string &config_file, int &threads, int debug)
     cout << "[INFO]\tport used:\t"<< port << endl;
     if (debug > 0) cout << "[INFO]\tDebug mode activated" << endl;
     else cout << "[INFO]\tDebug mode desactivated" << endl;
-    if ((int)_list_classifs.size() == 0) 
+    if ((int)_list_nlu.size() == 0) 
     {
-        cerr << "[ERROR]\tNo classification model loaded, exiting." << endl;
+        cerr << "[ERROR]\tNo nlu model loaded, exiting." << endl;
         exit(1);
     }
     
@@ -110,15 +100,7 @@ void rest_server::doNLUGet(const Rest::Request &request,
       "GET, POST, DELETE, OPTIONS");
   response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
   response.headers().add<Http::Header::ContentType>(MIME(Application, Json));
-  string response_string = "{\"intent-domains\":[";
-  for (int inc = 0; inc < (int)_list_classifs.size(); inc++) {
-    if (inc > 0)
-      response_string.append(",");
-    response_string.append("\"");
-    response_string.append(_list_classifs.at(inc)->getDomain());
-    response_string.append("\"");
-  }
-  response_string.append("],\"nlu-domains\":[");
+  string response_string = "{\"nlu-domains\":[";
   for (int inc = 0; inc < (int)_list_nlu.size(); inc++) {
     if (inc > 0)
       response_string.append(",");
@@ -159,21 +141,9 @@ void rest_server::doNLUPost(const Rest::Request &request,
     string tokenized;
     if (_debug_mode != 0)
       cerr << "[DEBUG]\t" << currentDateTime() << "\t" << "ASK NLU:\t" << j << endl;
-    std::vector<std::pair<fasttext::real, std::string>> classification_results;
-    classification_results = askClassification(text, tokenized, domain, lang, count, threshold);
-    
-    if ((int)classification_results.size() > 0)
-    {
-        if ((int)classification_results[0].second.compare("DOMAIN ERROR")==0)
-        {
-            response.headers().add<Http::Header::ContentType>(MIME(Application, Json));
-            response.send(Http::Code::Bad_Request,std::string("`domain` value is not valid ("+domain+") for classification"));
-            cerr << "[ERROR]\t" << currentDateTime() << "\tRESPONSE\t" << "`domain` value is not valid ("+domain+")\t" << j << endl;
-        }
-    }
+    askNLU(text, tokenized, j, domain, lang, debugmode);
     j.push_back(nlohmann::json::object_t::value_type(string("tokenized"), tokenized));
-    j.push_back(nlohmann::json::object_t::value_type(string("intention"), classification_results));
-    askNLU(text, j, domain, lang, debugmode);
+
     std::string s = j.dump();
     if (_debug_mode != 0)
       cerr << "[DEBUG]\t" << currentDateTime() << "\tRESPONSE\t" << s << endl;
@@ -213,22 +183,10 @@ void rest_server::doNLUBatchPost(const Rest::Request &request,
         string text = it["text"];
         string tokenized;
         if (_debug_mode != 0)
-          cerr << "[DEBUG]\t" << currentDateTime() << "\tASK CLASS:\t" << it << endl;
-        auto classification_results = askClassification(text, tokenized, domain, lang, count, threshold);
-        askNLU(text, it, domain, lang, debugmode);
-        if ((int)classification_results.size() > 0)
-        {
-            if ((int)classification_results[0].second.compare("DOMAIN ERROR")==0)
-            {
-                response.headers().add<Http::Header::ContentType>(MIME(Application, Json));
-                response.send(Http::Code::Bad_Request,std::string("`domain` value is not valid ("+domain+") for classification"));
-                cerr << "[ERROR]\t" << currentDateTime() << "\tRESPONSE\t" << "`domain` value is not valid ("+domain+")\t" << j << endl;
-                return;
-            }
-        }
+          cerr << "[DEBUG]\t" << currentDateTime() << "\tASK NLU:\t" << it << endl;
+        askNLU(text, tokenized, it, domain, lang, debugmode);
         it.push_back(nlohmann::json::object_t::value_type(string("tokenized"), tokenized));
-        it.push_back(nlohmann::json::object_t::value_type(string("intention"), classification_results));        
-      } 
+      }
       else 
       {
         response.headers().add<Http::Header::ContentType>(
@@ -239,7 +197,7 @@ void rest_server::doNLUBatchPost(const Rest::Request &request,
     }
     std::string s = j.dump();
     if (_debug_mode != 0)
-      cerr << "[DEBUG]\t" << currentDateTime() << "\tRESULT CLASS:\t" << s << endl;
+      cerr << "[DEBUG]\t" << currentDateTime() << "\tRESULT NLU:\t" << s << endl;
     response.headers().add<Http::Header::ContentType>(
         MIME(Application, Json));
     response.send(Http::Code::Ok, std::string(s));
@@ -281,29 +239,7 @@ void rest_server::fetchParamWithDefault(const nlohmann::json& j,
   }
 }
 
-std::vector<std::pair<fasttext::real, std::string>>
-rest_server::askClassification(std::string &text, std::string &tokenized_text, std::string &domain, string &lang, 
-                               int count, float threshold) {
-  std::vector<std::pair<fasttext::real, std::string>> to_return;
-  if ((int)text.size() > 0) 
-  {
-      auto it_classif = std::find_if(_list_classifs.begin(), _list_classifs.end(), [&](classifier *l_classif)
-                                    {
-                                        return (l_classif->getDomain() == domain && l_classif->getLang() == lang); 
-                                    });
-      if (it_classif != _list_classifs.end()) 
-      {
-          to_return = (*it_classif)->prediction(text, tokenized_text, count, threshold);
-      }
-      else
-      {
-          to_return.push_back(std::pair<fasttext::real, std::string>(0.0,"DOMAIN ERROR"));
-      }
-  }
-  return to_return;
-}
-
-bool rest_server::askNLU(std::string &text, json &output, string &domain, string &lang, bool debugmode)
+bool rest_server::askNLU(std::string &text, std::string &tokenized_text, json &output, string &domain, string &lang, bool debugmode)
 {
     auto it_nlu = std::find_if(_list_nlu.begin(), _list_nlu.end(), [&](nlu* l_nlu) 
     {
@@ -314,7 +250,10 @@ bool rest_server::askNLU(std::string &text, json &output, string &domain, string
         cerr << "[ERROR]\t" << currentDateTime() << "\tRESPONSE\t" << "`domain` value is not valid ("+domain+") for NLU" << endl;
         return false;
     }
-    vector<string> tokenized_vec = (*it_nlu)->tokenize(text) ;
+    
+    tokenized_text = (*it_nlu)->tokenize_str(text);
+    std::vector<std::string> tokenized_vec = (*it_nlu)->tokenize(text);
+
     vector<vector<string> > tokenized_batched ;
     vector<string> tokenized_vec_tmp;
     for (int l_inc=0; l_inc < (int)tokenized_vec.size(); l_inc++)
@@ -331,7 +270,6 @@ bool rest_server::askNLU(std::string &text, json &output, string &domain, string
     {
         tokenized_batched.push_back(tokenized_vec_tmp);
     }    
-    if (debugmode) output.push_back( nlohmann::json::object_t::value_type(string("tokenized_vec"), tokenized_batched ));
     return askNLU(tokenized_batched, output, domain, lang, debugmode);
 }
 
