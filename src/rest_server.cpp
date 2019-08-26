@@ -141,8 +141,9 @@ void rest_server::doNLUPost(const Rest::Request &request,
     string tokenized;
     if (_debug_mode != 0)
       cerr << "[DEBUG]\t" << currentDateTime() << "\t" << "ASK NLU:\t" << j << endl;
-    // TODO: return tokenized
-    askNLU(text, j, domain, lang, debugmode);
+    askNLU(text, tokenized, j, domain, lang, debugmode);
+    j.push_back(nlohmann::json::object_t::value_type(string("tokenized"), tokenized));
+
     std::string s = j.dump();
     if (_debug_mode != 0)
       cerr << "[DEBUG]\t" << currentDateTime() << "\tRESPONSE\t" << s << endl;
@@ -183,8 +184,8 @@ void rest_server::doNLUBatchPost(const Rest::Request &request,
         string tokenized;
         if (_debug_mode != 0)
           cerr << "[DEBUG]\t" << currentDateTime() << "\tASK NLU:\t" << it << endl;
-        askNLU(text, it, domain, lang, debugmode);
-        // TODO: return tokenized
+        askNLU(text, tokenized, it, domain, lang, debugmode);
+        it.push_back(nlohmann::json::object_t::value_type(string("tokenized"), tokenized));
       }
       else 
       {
@@ -238,7 +239,7 @@ void rest_server::fetchParamWithDefault(const nlohmann::json& j,
   }
 }
 
-bool rest_server::askNLU(std::string &text, json &output, string &domain, string &lang, bool debugmode)
+bool rest_server::askNLU(std::string &text, std::string &tokenized_text, json &output, string &domain, string &lang, bool debugmode)
 {
     auto it_nlu = std::find_if(_list_nlu.begin(), _list_nlu.end(), [&](nlu* l_nlu) 
     {
@@ -249,7 +250,10 @@ bool rest_server::askNLU(std::string &text, json &output, string &domain, string
         cerr << "[ERROR]\t" << currentDateTime() << "\tRESPONSE\t" << "`domain` value is not valid ("+domain+") for NLU" << endl;
         return false;
     }
-    vector<string> tokenized_vec = (*it_nlu)->tokenize(text) ;
+    
+    tokenized_text = (*it_nlu)->tokenize_str(text);
+    std::vector<std::string> tokenized_vec = (*it_nlu)->tokenize(text);
+
     vector<vector<string> > tokenized_batched ;
     vector<string> tokenized_vec_tmp;
     for (int l_inc=0; l_inc < (int)tokenized_vec.size(); l_inc++)
@@ -266,7 +270,6 @@ bool rest_server::askNLU(std::string &text, json &output, string &domain, string
     {
         tokenized_batched.push_back(tokenized_vec_tmp);
     }    
-    if (debugmode) output.push_back( nlohmann::json::object_t::value_type(string("tokenized_vec"), tokenized_batched ));
     return askNLU(tokenized_batched, output, domain, lang, debugmode);
 }
 

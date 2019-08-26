@@ -61,7 +61,7 @@ private:
                               float& threshold,
                               bool& debugmode);
 
-  bool askNLU(std::string &text, json &output, string &domain, string &lang, bool debugmode);
+  bool askNLU(std::string &text, std::string &tokenized, json &output, string &domain, string &lang, bool debugmode);
   bool askNLU(vector<vector<string> > &input, json &output, string &domain, string &lang, bool debugmode);
 
   void writeLog(string text_to_log) {}
