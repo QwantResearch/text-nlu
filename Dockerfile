@@ -4,6 +4,15 @@ FROM ubuntu:18.04
 
 LABEL authors="Estelle Maudet, Pierre Jackman, Noël Martin, Christophe Servan"
 
+
+ENV http_proxy=http://10.100.9.1:2001
+ENV https_proxy=http://10.100.9.1:2001
+
+RUN echo "export http_proxy=http://10.100.9.1:2001" >> /etc/profile
+RUN echo "export https_proxy=http://10.100.9.1:2001" >> /etc/profile
+RUN echo "Acquire::http::Proxy \"http://10.100.9.1:2001\";" >> /etc/apt/apt.conf
+
+
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
 ENV TZ=Europe/Paris
@@ -11,9 +20,9 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt-get -y update && \
     apt-get -y install \
-	curl \
- 	vim
-	
+    curl \
+    vim
+    
 
 #RUN echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list
 #RUN curl https://bazel.build/bazel-release.pub.gpg | apt-key add -
@@ -23,21 +32,26 @@ RUN apt-get -y update && \
     apt-get -y install \
         openjdk-11-jdk \
         bash-completion \
-        libgrpc++-dev \
-        libgrpc-dev \
-        protobuf-compiler-grpc \
         golang \
         python3-numpy \
         python3-scipy \
         python3-pip \
-	libtool \
+        libtool \
         cmake \
         g++ \
         libboost-locale1.65-dev \
         libboost-regex1.65-dev \
         libyaml-cpp-dev \
         git \
-        automake
+        automake \
+        build-essential \
+        autoconf \
+        pkg-config \
+        clang \
+        libc++-dev \
+        libssl-dev \
+        libgflags-dev \
+        libgtest-dev
 
 ADD https://github.com/bazelbuild/bazel/releases/download/0.11.0/bazel_0.11.0-linux-x86_64.deb /tmp/bazel_0.11.0-linux-x86_64.deb
 RUN dpkg -i /tmp/bazel_0.11.0-linux-x86_64.deb

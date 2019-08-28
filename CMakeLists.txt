@@ -7,11 +7,33 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
 
+set(protobuf_MODULE_COMPATIBLE TRUE)
+find_package(Protobuf CONFIG REQUIRED)
+message(STATUS "Using protobuf ${protobuf_VERSION}")
 
-set(TF_DIR vendor/tensorflow/)
-set(TF_SERVING_DIR vendor/tfserving/)
-include_directories(BEFORE ${TF_DIR} ${TF_DIR}/bazel-genfiles ${TF_DIR}/bazel-tensorflow/external/eigen_archive ${TF_DIR}/bazel-tensorflow/external/protobuf_archive/src ${TF_DIR}/bazel-tensorflow/external/nsync/public/ ${TF_SERVING_DIR} ${TF_SERVING_DIR}/bazel-genfiles ${TF_SERVING_DIR}bazel-tfserving/external/grpc/include/)
-link_directories(BEFORE ${TF_DIR}/bazel-bin/tensorflow ${TF_SERVING_DIR}/bazel-bin/tensorflow_serving/model_servers/ ${TF_SERVING_DIR}/bazel-bin/tensorflow_serving/apis/ ${TF_SERVING_DIR}/bazel-bin/tensorflow_serving/util/ ${TF_SERVING_DIR}/bazel-serving/bazel-out/k8-opt/bin/tensorflow_serving/core/)
+# Protobuf compiler dependency.
+include(CompileProto.cmake)
+
+# Find gRPC installation
+# Looks for gRPCConfig.cmake file installed by gRPC's cmake installation.
+find_package(gRPC CONFIG REQUIRED)
+message(STATUS "Using gRPC ${gRPC_VERSION}")
+
+set(_GRPC_GRPCPP_UNSECURE gRPC::grpc++_unsecure)
+set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
+
+# Protobuf sources of the TensorFlow Serving to be compiled without a gRPC plugin.
+file(GLOB_RECURSE TF_PROTOS protos/*.proto)
+
+# Compiling CPP sources from proto files.
+compile_proto(0 "${CMAKE_SOURCE_DIR}/protos" "${CMAKE_SOURCE_DIR}/compiled" PB_SOURCES PB_HEADERS ${TF_PROTOS})
+
+# Compiling CPP sources with gRPC plugin.
+compile_proto(1 "${CMAKE_SOURCE_DIR}/protos" "${CMAKE_SOURCE_DIR}/compiled" PB_GRPC_SOURCES PB_GRPC_HEADERS
+        protos/tensorflow_serving/apis/prediction_service.proto)
+
+# Including compiled files.
+include_directories(compiled)
 
 
 include_directories(${PROJECT_SOURCE_DIR}/include/ /usr/local/include/ /usr/)
@@ -26,30 +48,32 @@ set(CLASS_SOURCE_API ${PROJECT_SOURCE_DIR}/src/text-nlu.cpp
                      ${PROJECT_SOURCE_DIR}/src/nlu.cpp
                      ${PROJECT_SOURCE_DIR}/src/rest_server.cpp
                      ${PROJECT_SOURCE_DIR}/src/tokenizer.cpp
-                     ${PROJECT_SOURCE_DIR}/src/utils.cpp)
+                     ${PROJECT_SOURCE_DIR}/src/utils.cpp
+
+                     ${PB_GRPC_HEADERS}
+                     ${PB_GRPC_SOURCES}
+                     ${PB_HEADERS}
+                     ${PB_SOURCES}
+)
+
+
+
 
 add_executable(${CLASS_EXECUTABLE_API} ${CLASS_SOURCE_API})
 
 set(LIBS
+    ${_GRPC_GRPCPP_UNSECURE}
+    ${_PROTOBUF_LIBPROTOBUF}
     fasttext
     qnlp
     pistache
     pthread
     yaml-cpp
 
-    tensorflow_framework 
-    tensorflow_qnlp  
-    predict_proto 
-    model_proto 
-    optional 
-    grpc++ 
-    grpc
-    prediction_service_proto 
-    classification_proto 
-    get_model_metadata_proto 
-    regression_proto 
-    input_proto 
-    inference_proto
+#    grpc++ 
+#    grpc
+#    tensorflow_framework 
+#    tensorflow_qnlp
 )
 
 target_link_libraries(${CLASS_EXECUTABLE_API} ${LIBS})

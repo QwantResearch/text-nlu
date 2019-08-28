@@ -285,7 +285,8 @@ bool rest_server::askNLU(vector<vector<string> > &input, json &output, string &d
         cerr << "[ERROR]\t" << currentDateTime() << "\tRESPONSE\t" << "`domain` value is not valid ("+domain+") for NLU" << endl;
         return false;
     }
-    (*it_nlu)->NLUBatch(input,result_batched);
+    // (*it_nlu)->NLUBatch(input,result_batched);
+    (*it_nlu)->callPredict(domain);
     
     json i_tmp = json::array();
     json k_tmp = json::array();
