@@ -11,9 +11,19 @@ cd text-nlu
 docker build -t text-nlu:latest .
 ``` 
 
+## Start a container network
+```
+docker network create text-nlu-net
+```
+
+## Launch the TFserving
+```
+docker run -t --rm -p 8500:8500 -v /home/estelle/Projects/API/NLU/text-nlu/resources/POI:/models/POI -e MODEL_NAME=POI tensorflow/serving:latest --network text-nlu-net
+```
+
 ## Launch the API
 ```
-./text-nlu --model-config <filename> [--port <port>] [--threads <nthreads>] [--debug]
+docker run -p 9009:9009 --network text-nlu-net text-nlu:latest --model-config <filename> [--port <port>] [--threads <nthreads>] [--debug]
 
 --model-config (-c)      config file in which all models are described (REQUIRED)
 --threads (-t)           number of threads (default 1)
