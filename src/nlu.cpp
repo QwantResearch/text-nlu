@@ -40,10 +40,8 @@ nlu::nlu(int debug_mode)
 }
 
 std::vector<std::string> nlu::getDomains(){
-  //TODO (calling tfserving?)
-  //TODO test: _stub->GetModelMetadata(); to get model availables ?
-  // PredictRequest request2;
-  // request2.mutable_model_spec()->set_name("domain");
+  // We can't get the list of models from tfserving: https://github.com/tensorflow/serving/pull/797
+  // TODO: find another solution
 
   std::vector<std::string> domain_list;
   return domain_list;
@@ -67,82 +65,56 @@ std::vector<int> nlu::PadBatch(
   return lengths;
 }
 
+int nlu::getMaxLengthWord(std::vector<std::vector<std::string>>& batch_tokens) {
+  int max_length_word = 0;
+
+  for (auto &tokens: batch_tokens) {
+    for (auto &token: tokens) {
+      max_length_word = std::max(max_length_word, (int)token.size());
+    }
+  }
+  return max_length_word;
+}
+
+void nlu::getBatchCharsListFromBatchTokens(
+  std::vector<std::vector<std::vector<std::string>>>& batch_chars_list,
+  std::vector<std::vector<std::string>>& batch_tokens, 
+  int max_length_word){
+  // We construct batch_chars_list from batch_tokens
+  // by pushing tokens chars by chars and padding to max_length_word.
+
+  for (auto &tokens: batch_tokens) {
+    std::vector<std::vector<std::string> > tokens_chars_list;
+    for (auto &token: tokens) {
+      std::vector<std::string> token_chars_list;
+
+      for (auto &current_char: token){
+        token_chars_list.push_back((std::string)&current_char);
+      }
+      //Padding to max_length_word
+      token_chars_list.insert(token_chars_list.end(), max_length_word - token_chars_list.size(), "");
+
+      tokens_chars_list.push_back(token_chars_list);
+    }
+    batch_chars_list.push_back(tokens_chars_list);
+  }
+}
+
 bool nlu::NLUBatch(
     std::vector<std::vector<std::string> >& batch_tokens,
     std::vector<std::vector<std::string> >& output_batch_tokens,
     std::string domain) {
+
   // Pad batch.
   std::vector<int> lengths = PadBatch(batch_tokens);
 
   long batch_size = batch_tokens.size();
   long max_length = batch_tokens.front().size();
-  
-  std::vector<std::vector<std::vector<std::string> > > chars_list_bis_batch;
-  std::vector<std::vector<std::vector<std::string> > > chars_list_batch;
-  std::vector<std::vector<std::string> > chars_list;
-  std::vector<std::string> l_tokens_in_batch ;
-  
-  int l_inc=0;
-  int l_inc_batch=0;
-  int l_inc_char=0;
-  
-  int length = 0;
-  int max_length_word = 0;
-  for (l_inc_batch = 0; l_inc_batch < batch_size; l_inc_batch++)
-  {
-      l_tokens_in_batch = batch_tokens.at(l_inc_batch);
-      length = l_tokens_in_batch.size();
-      for (l_inc = 0 ; l_inc < length; l_inc++)
-      {
-          string word = l_tokens_in_batch.at(l_inc);
-          if (max_length_word < (int)word.size())
-          {
-              max_length_word = (int)word.size();
-          }
-      }
-  }
-  for (l_inc_batch = 0; l_inc_batch < batch_size; l_inc_batch++)
-  {
-      l_tokens_in_batch = batch_tokens.at(l_inc_batch);
-      length = l_tokens_in_batch.size();
-      std::vector<std::vector<std::string> > chars_list_bis;
-      for (l_inc = 0 ; l_inc < length; l_inc++)
-      {
-          vector<std::string> l_char;
-          std::string word = l_tokens_in_batch.at(l_inc);
-          for (l_inc_char = 0 ; l_inc_char < max_length_word; l_inc_char++)
-          {
-              if (l_inc_char < (int)word.size())
-              {
-                  stringstream l_ss;
-                  l_ss << word[l_inc_char];
-                  l_char.push_back(l_ss.str());
-              }
-              else
-              {
-                  l_char.push_back("");
-              }
-          }
-          chars_list.push_back(l_char);
-      }
 
-    chars_list_batch.push_back(chars_list);
+  int max_length_word = getMaxLengthWord(batch_tokens);
 
-    l_inc=0;  
-    while (l_inc < max_length_word)
-    {
-        std::vector<std::string> l_vectmp;
-        chars_list_bis.push_back(l_vectmp);
-        int l_inc_bis=0;
-        while (l_inc_bis < length)
-        {
-            chars_list_bis[l_inc].push_back(chars_list[l_inc_bis][l_inc]);
-            l_inc_bis=l_inc_bis+1;
-        }
-        l_inc=l_inc+1;
-    }
-    chars_list_bis_batch.push_back(chars_list_bis);
-  }
+  std::vector<std::vector<std::vector<std::string> > > batch_chars_list;
+  getBatchCharsListFromBatchTokens(batch_chars_list, batch_tokens, max_length_word);
 
   // Data we are sending to the server.
   PredictRequest request;
@@ -177,11 +149,10 @@ bool nlu::NLUBatch(
   tensorflow::TensorProto chars_tensor;
   chars_tensor.set_dtype(tensorflow::DataType::DT_STRING);
 
-  //TODO: check consistency
   for (int i = 0; i < batch_size; i++) {
       for (int j = 0; j < max_length; j++) { 
           for (int k = 0; k < max_length_word; k++) {
-            chars_tensor.add_string_val(chars_list_batch[i][j][k]);  //TODO: check if bis or not?
+            chars_tensor.add_string_val(batch_chars_list[i][j][k]);
           }
       }
   }

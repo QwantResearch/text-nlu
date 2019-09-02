@@ -81,7 +81,12 @@ class nlu
       int _debug_mode;
 
       std::vector<int> PadBatch(
-      std::vector<std::vector<std::string> >& batch_tokens);
+        std::vector<std::vector<std::string> >& batch_tokens);
+      int getMaxLengthWord(std::vector<std::vector<std::string>>& batch_tokens);
+      void getBatchCharsListFromBatchTokens(
+        std::vector<std::vector<std::vector<std::string>>>& chars_list_batch,
+        std::vector<std::vector<std::string>>& batch_tokens, 
+        int max_length_word);
 };
 
 
