@@ -6,8 +6,4 @@
 port: 9009
 threads: 2
 debug: 1
-
-models:
-  ner:
-    nlu_model: path/to/nlu_model
-    language: fr
+// TODO: check if we should give available models information

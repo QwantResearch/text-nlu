@@ -36,7 +36,7 @@ public:
 private:
   int _debug_mode;
   int _nbr_threads;
-  std::vector<nlu *> _list_nlu;
+  std::unique_ptr<nlu> _nlu;
   std::shared_ptr<Http::Endpoint> httpEndpoint;
   Rest::Router router;
   typedef std::mutex Lock;

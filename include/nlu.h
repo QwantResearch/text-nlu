@@ -58,61 +58,30 @@ std::vector<T> FlattenVector(const std::vector<std::vector<std::vector<T> > >& v
   return flat_vals;
 }
 
-// // Convenience functions to convert std::vectors to tensorflow::Tensors. 
-// template <typename T>
-// tensorflow::TensorProto AsTensor(const std::vector<T>& vals) {
-//   tensorflow::TensorProto ret(std::DataTypeToEnum<T>::value,
-//                         {static_cast<std::int64>(vals.size())});
-//   std::copy_n(vals.data(), vals.size(), ret.flat<T>().data());
-//   return ret;
-// }
-
-// template <typename T>
-// tensorflow::TensorProto AsTensor(const std::vector<T>& vals,
-//                             const tensorflow::TensorShape& shape) {
-//   tensorflow::TensorProto ret;
-//   ret.CopyFrom(AsTensor(vals), shape);
-//   return ret;
-// }
-
-// template <typename T>
-// tensorflow::TensorProto AsTensorProto(const std::vector<T>& vals) {
-//   tensorflow::TensorProto ret(tensorflow::DataTypeToEnum<T>::value,
-//                         {static_cast<tensorflow::int64>(vals.size())});
-//   std::copy_n(vals.data(), vals.size(), ret.flat<T>().data());
-//   return ret;
-// }
-// 
-// template <typename T>
-// tensorflow::TensorProto AsTensorProto(const std::vector<T>& vals,
-//                             const tensorflow::TensorShape& shape) {
-//   tensorflow::TensorProto ret;
-//   ret.CopyFrom(AsTensor(vals), shape);
-//   return ret;
-// }
-
 class nlu
 {
     public:
-        nlu();
-        nlu(const std::string&  filename,std::string& model_domain_param,std::string& lang);
+        nlu(int debug_mode);
         ~nlu(){delete(_tokenizer);};
-        std::string callPredict(std::string& model_domain_param);
+        std::vector<std::string> getDomains();
         bool getLocal();
         void setDebugMode(int debug_mode);
-        std::string getDomain() { return _domain; }
-        std::string getLang() { return _lang; }
-        std::vector <std::string> tokenize(std::string &input);
-        std::string tokenize_str(std::string &input);
+        std::vector <std::string> tokenize(std::string &input, std::string lang);
+        std::string tokenize_str(std::string &input, std::string lang);
+
+        bool NLUBatch(
+          std::vector<std::vector<std::string> >& batch_tokens,
+          std::vector<std::vector<std::string> >& output_batch_tokens,
+          std::string domain);
     private:
       unique_ptr<PredictionService::Stub> _stub;
 
       bool _local;
-      string _domain;
-      string _lang;
       tokenizer * _tokenizer;
       int _debug_mode;
- 
+
+      std::vector<int> PadBatch(
+      std::vector<std::vector<std::string> >& batch_tokens);
 };
 
 
