@@ -38,5 +38,4 @@
 build/*
 
 # Compiled proto files
-*.pb.cc
-*.pb.h
+compiled/*

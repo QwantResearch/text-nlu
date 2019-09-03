@@ -5,45 +5,14 @@
 #include "nlu.h"
 #include "utils.h"
 
-rest_server::rest_server(std::string &config_file, int &threads, int debug) 
-{
-    std::string line;
-    int port=9009;
-    YAML::Node config;
 
-    try 
-    {
-    // Reading the configuration file for filling the options.
-        config = YAML::LoadFile(config_file);
-        cout << "[INFO]\tDomain\t\tLocation/filename\t\tlanguage"<< endl;
-        threads = config["threads"].as<int>() ;
-        port =  config["port"].as<int>() ;
-        debug =  config["debug"].as<int>() ;
-    } catch (YAML::BadFile& bf) {
-      cerr << "[ERROR]\t" << bf.what() << endl;
-      exit(1);
-    }
-    _nbr_threads=threads;
-    cout << "[INFO]\tnumber of threads:\t"<< _nbr_threads << endl;
-    cout << "[INFO]\tport used:\t"<< port << endl;
-    if (debug > 0) cout << "[INFO]\tDebug mode activated" << endl;
-    else cout << "[INFO]\tDebug mode desactivated" << endl;    
-    
-    
-    // Creating the entry point of the REST API.
-    Pistache::Port pport(port);
-    Address addr(Ipv4::any(), pport);
-    httpEndpoint = std::make_shared<Http::Endpoint>(addr);
-    _debug_mode = debug;
+void rest_server::init(size_t thr) {
+  // Creating the entry point of the REST API.
+  Pistache::Port pport(_num_port);
+  Address addr(Ipv4::any(), pport);
+  httpEndpoint = std::make_shared<Http::Endpoint>(addr);
 
-    _nlu = std::unique_ptr<nlu>(new nlu(debug));
-    // TODO: Test if NLU started correctly
-
-}
-
-
-void rest_server::init() {
-  auto opts = Http::Endpoint::options().threads(_nbr_threads).flags(
+  auto opts = Http::Endpoint::options().threads(thr).flags(
       Tcp::Options::InstallSignalHandler);
   httpEndpoint->init(opts);
   setupRoutes();
@@ -311,4 +280,8 @@ void rest_server::doAuth(const Rest::Request &request,
   printCookies(request);
   response.cookies().add(Http::Cookie("lang", "fr-FR"));
   response.send(Http::Code::Ok);
+}
+
+void rest_server::shutdown() {
+  httpEndpoint->shutdown(); 
 }
