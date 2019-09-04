@@ -30,7 +30,10 @@ compile_proto(0 "${CMAKE_SOURCE_DIR}/protos" "${CMAKE_SOURCE_DIR}/compiled" PB_S
 
 # Compiling CPP sources with gRPC plugin.
 compile_proto(1 "${CMAKE_SOURCE_DIR}/protos" "${CMAKE_SOURCE_DIR}/compiled" PB_GRPC_SOURCES PB_GRPC_HEADERS
-        protos/tensorflow_serving/apis/prediction_service.proto protos/grpc_nlu.proto)
+        protos/tensorflow_serving/apis/prediction_service.proto
+        protos/tensorflow_serving/config/model_server_config.proto
+        protos/grpc_nlu.proto
+)
 
 # Including compiled files.
 include_directories(compiled)

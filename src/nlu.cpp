@@ -11,20 +11,50 @@ bool nlu::getLocal()
 
 nlu::nlu(int debug_mode)
 {
-    std::cout << "NLU Init" << std::endl;
     std::string channel("tensorflow_serving:8500");
     _stub = PredictionService::NewStub(CreateChannel(channel, grpc::InsecureChannelCredentials()));
-    // _stub = PredictionService::PredictionService::NewStub(CreateChannel(channel, grpc::InsecureChannelCredentials()));
-    std::cout << "NLU Init done" << std::endl;
     _local=true;
     _debug_mode=debug_mode;
+    if (debug_mode){
+      std::cout << "NLU initialized successfully." << std::endl;
+    }
 }
 
 std::vector<std::string> nlu::getDomains(){
-  // We can't get the list of models from tfserving: https://github.com/tensorflow/serving/pull/797
-  // TODO: find another solution
+  // We can't get the list of models from tfserving. 
+  // See: https://github.com/tensorflow/serving/pull/797
+  // Instead we read it directly from models_config.yaml.
+  // As it is possible to change the config file on the fly,
+  // we don't store the retrieved information.
 
   std::vector<std::string> domain_list;
+
+  // TODO: Improve way to get absolute path to the config file.
+  std::string filename = "/opt/text-nlu/models/models_config.yaml";
+
+  tensorflow::serving::ModelServerConfig *server_config = new tensorflow::serving::ModelServerConfig();
+
+
+  int fileDescriptor = open(filename.c_str(), O_RDONLY);
+  if( fileDescriptor < 0 ) {
+    std::cerr << " Error opening the file " << std::endl;
+    return domain_list;
+  }
+
+  google::protobuf::io::FileInputStream fileInput(fileDescriptor);
+  fileInput.SetCloseOnDelete( true );
+
+  if (!google::protobuf::TextFormat::Parse(&fileInput, server_config)) {
+    cerr << std::endl << "Failed to parse file!" << endl;
+    return domain_list;
+  }
+
+  const tensorflow::serving::ModelConfigList list = server_config->model_config_list();
+  for (int index = 0; index < list.config_size(); index++) {
+    const tensorflow::serving::ModelConfig config = list.config(index);
+    domain_list.push_back(config.name());
+  }
+
   return domain_list;
 }
 
@@ -191,6 +221,7 @@ bool nlu::NLUBatch(
     }
    
   } else {
+    // TODO: Deal with model not found
     std::cout << "gRPC call return code: " << status.error_code() << ": "
               << status.error_message() << std::endl;
     return "RPC failed";

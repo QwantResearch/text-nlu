@@ -7,9 +7,9 @@ grpc::Status GrpcRouteNLUImpl::GetDomains(grpc::ServerContext* context,
                                                const Empty* request,
                                                Domains* response) {
 
-  // for (auto& it: _nlu->getListClassifs()) {
-  //   response->add_domains(it->getDomain());
-  // }
+  for (auto& it: _nlu->getDomains()) {
+    response->add_domains(it);
+  }
   if (_debug_mode)
     cerr << "[DEBUG]: " << currentDateTime() << "\t" << "GetDomains" << endl;
   return grpc::Status::OK;

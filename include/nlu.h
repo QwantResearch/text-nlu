@@ -7,13 +7,17 @@
 
 #include <iostream>
 #include <fstream>
+#include <fcntl.h>
 
 #include "grpcpp/create_channel.h"
 
 #include <grpcpp/security/credentials.h>
 #include <google/protobuf/map.h>
+#include <google/protobuf/text_format.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
 
 #include "tensorflow_serving/apis/prediction_service.grpc.pb.h"
+#include "tensorflow_serving/config/model_server_config.grpc.pb.h"
 
 #include "tokenizer.h"
 
