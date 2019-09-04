@@ -6,7 +6,7 @@
 AbstractServer::AbstractServer(string &config_file, int debug_mode){
   _debug_mode = debug_mode;
 
-  _nlu = make_shared<nlu>(debug_mode);
+  _nlu = make_shared<nlu>(debug_mode, _model_config_path);
   // TODO: Test if NLU started correctly
 
   ProcessConfigFile(config_file);
@@ -26,6 +26,7 @@ void AbstractServer::ProcessConfigFile(std::string &config_file) {
         _nbr_threads = config["threads"].as<int>() ;
         _num_port =  config["port"].as<int>() ;
         _debug_mode =  config["debug"].as<int>() ;
+        _model_config_path = config["model_config_path"].as<std::string>() ;
     } catch (YAML::BadFile& bf) {
         cerr << "[ERROR]\t" << bf.what() << endl;
         exit(1);

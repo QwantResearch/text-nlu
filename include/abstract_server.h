@@ -25,6 +25,7 @@ protected:
   int _debug_mode;
   int _num_port;
   int _nbr_threads;
+  std::string _model_config_path;
   std::shared_ptr<nlu> _nlu;
 
   void ProcessConfigFile(std::string &config_file);

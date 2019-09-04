@@ -9,12 +9,13 @@ bool nlu::getLocal()
     return _local;
 }
 
-nlu::nlu(int debug_mode)
+nlu::nlu(int debug_mode, std::string model_config_path)
 {
     std::string channel("tensorflow_serving:8500");
     _stub = PredictionService::NewStub(CreateChannel(channel, grpc::InsecureChannelCredentials()));
     _local=true;
     _debug_mode=debug_mode;
+    _model_config_path = model_config_path;
     if (debug_mode){
       std::cout << "NLU initialized successfully." << std::endl;
     }

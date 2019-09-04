@@ -65,7 +65,7 @@ std::vector<T> FlattenVector(const std::vector<std::vector<std::vector<T> > >& v
 class nlu
 {
     public:
-        nlu(int debug_mode);
+        nlu(int debug_mode, std::string model_config_path);
         ~nlu(){delete(_tokenizer);};
         std::vector<std::string> getDomains();
         bool getLocal();
@@ -83,6 +83,7 @@ class nlu
       bool _local;
       tokenizer * _tokenizer;
       int _debug_mode;
+      std::string _model_config_path;
 
       std::vector<int> PadBatch(
         std::vector<std::vector<std::string> >& batch_tokens);

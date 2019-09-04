@@ -1,9 +1,4 @@
-# models:
-#  name of the model:
-#    intent_model: file localization
-#    nlu_model: adress:port
-#    language: language of the model (for tokenization)
 port: 9009
 threads: 2
 debug: 1
-// TODO: check if we should give available models information
+model_config_path: /opt/text-nlu/models/models_config.yaml
