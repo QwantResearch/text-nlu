@@ -1,8 +1,5 @@
 # coding: utf-8
 
-import sys
-sys.path.insert(1, '../compiled')
-
 import grpc
 
 import grpc_nlu_pb2
