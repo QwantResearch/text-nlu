@@ -75,11 +75,6 @@ set(LIBS
     pistache
     pthread
     yaml-cpp
-
-#    grpc++ 
-#    grpc
-#    tensorflow_framework 
-#    tensorflow_qnlp
 )
 
 target_link_libraries(${CLASS_EXECUTABLE_API} ${LIBS})

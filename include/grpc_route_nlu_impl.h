@@ -9,9 +9,7 @@
 #include "grpc_nlu.grpc.pb.h"
 #include "grpc_nlu.pb.h"
 
-#include "tokenizer.h"
 #include "nlu.h"
-#include "abstract_server.h"
 #include "utils.h"
 
 class GrpcRouteNLUImpl : public RouteNLU::Service {

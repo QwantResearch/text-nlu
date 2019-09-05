@@ -11,8 +11,6 @@ export CMAKE_PREFIX_PATH=$PREFIX
 
 
 pushd vendor/grpc
-    # git submodule update --init
-
     # Based on https://github.com/grpc/grpc/blob/master/test/distrib/cpp/run_distrib_test_cmake.sh
 
     # Install c-ares
@@ -52,6 +50,6 @@ pushd vendor/grpc
     pushd cmake/build
         cmake -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DgRPC_PROTOBUF_PROVIDER=package -DgRPC_ZLIB_PROVIDER=package -DgRPC_CARES_PROVIDER=package -DgRPC_SSL_PROVIDER=package -DCMAKE_BUILD_TYPE=Release --DCMAKE_INSTALL_PREFIX="${PREFIX}" ../..
         # See https://github.com/grpc/grpc/issues/13841
-            make -j 4 && make install
-        popd
+        make -j 4 && make install
+    popd
 popd

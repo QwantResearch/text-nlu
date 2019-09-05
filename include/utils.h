@@ -12,9 +12,6 @@
 #include <pistache/http.h>
 #include <pistache/router.h>
 
-void Split(const std::string &line, std::vector<std::string> &pieces,
-           const std::string del);
-
 void printCookies(const Pistache::Http::Request &req);
 
 const std::string currentDateTime();

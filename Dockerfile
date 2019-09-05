@@ -11,9 +11,9 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt-get -y update && \
     apt-get -y install \
-        curl \
+ 	curl \
  	vim
-    
+ 	
 
 #RUN echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list
 #RUN curl https://bazel.build/bazel-release.pub.gpg | apt-key add -
@@ -27,7 +27,7 @@ RUN apt-get -y update && \
         python3-numpy \
         python3-scipy \
         python3-pip \
-        libtool \
+ 	libtool \
         cmake \
         g++ \
         libboost-locale1.65-dev \
@@ -43,16 +43,6 @@ RUN apt-get -y update && \
         libssl-dev \
         libgflags-dev \
         libgtest-dev
-
-ADD https://github.com/bazelbuild/bazel/releases/download/0.11.0/bazel_0.11.0-linux-x86_64.deb /tmp/bazel_0.11.0-linux-x86_64.deb
-RUN dpkg -i /tmp/bazel_0.11.0-linux-x86_64.deb
-
-# COPY vendor/bazel/bazel_0.11.0-linux-x86_64.deb /tmp 
-# RUN dpkg -i /tmp/bazel_0.11.0-linux-x86_64.deb
-
-# N cd vendor/bazel && dpkg -i bazel_0.11.0-linux-x86_64.deb
-
-# RUN python -m pip install tensorflow-serving-api
  
 ADD https://cmake.org/files/v3.9/cmake-3.9.0-Linux-x86_64.sh /tmp/cmake-3.9.0-Linux-x86_64.sh
 RUN mkdir /opt/cmake
