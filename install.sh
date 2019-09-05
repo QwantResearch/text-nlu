@@ -37,7 +37,6 @@ mkdir -p $PREFIX
 rm -rf build
 mkdir -p build
 pushd build
-	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/bin/ # Adding protoc to LD_LIBRARY_PATH
 	cmake -DCMAKE_INSTALL_PREFIX="${PREFIX}" -DCMAKE_BUILD_TYPE=Release Protobuf_PROTOC_EXECUTABLE=/usr/local/bin/protoc ..
 	make -j && make install
 popd
