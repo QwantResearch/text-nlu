@@ -23,7 +23,7 @@ docker run -t --rm -p 8500:8500 -v "$(pwd)/resources/:/models/" --name tensorflo
 
 ## Launch the API
 ```
-docker run -p 9009:9009 --network text-nlu-net text-nlu:latest --model-config <filename> [--port <port>] [--threads <nthreads>] [--debug]
+docker run -p 9009:9009 --name text_nlu --network text-nlu-net text-nlu:latest --model-config <filename> [--port <port>] [--threads <nthreads>] [--debug]
 
 --model-config (-c)      config file in which all models are described (REQUIRED)
 --threads (-t)           number of threads (default 1)

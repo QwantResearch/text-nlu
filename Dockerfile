@@ -4,15 +4,6 @@ FROM ubuntu:18.04
 
 LABEL authors="Estelle Maudet, Pierre Jackman, Noël Martin, Christophe Servan"
 
-
-ENV http_proxy=http://10.100.9.1:2001
-ENV https_proxy=http://10.100.9.1:2001
-
-RUN echo "export http_proxy=http://10.100.9.1:2001" >> /etc/profile
-RUN echo "export https_proxy=http://10.100.9.1:2001" >> /etc/profile
-RUN echo "Acquire::http::Proxy \"http://10.100.9.1:2001\";" >> /etc/apt/apt.conf
-
-
 ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
 ENV TZ=Europe/Paris
@@ -20,8 +11,8 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt-get -y update && \
     apt-get -y install \
-    curl \
-    vim
+        curl \
+ 	vim
     
 
 #RUN echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list
@@ -69,24 +60,19 @@ RUN sh /tmp/cmake-3.9.0-Linux-x86_64.sh --prefix=/opt/cmake --skip-license
 RUN ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
 RUN cmake --version
 
+RUN python3 -m pip install grpcio grpcio-tools
 
 RUN git clone --recursive https://github.com/QwantResearch/text-nlu.git /opt/text-nlu
 #COPY . /opt/text-nlu
 
 WORKDIR /opt/text-nlu
 
-RUN git checkout develop
-
-RUN ln -s /usr/bin/python3 /usr/bin/python
-
-RUN bash ./tfinstall.sh
+RUN bash ./install_grpc.sh
 
 RUN bash ./install.sh
 
-#RUN ./install.sh
+RUN groupadd -r qnlp && useradd --system -s /bin/bash -g qnlp qnlp
 
-#RUN groupadd -r qnlp && useradd --system -s /bin/bash -g qnlp qnlp
+USER qnlp 
 
-#USER qnlp 
-
-#ENTRYPOINT ["/usr/local/bin/text-nlu"]
+ENTRYPOINT ["/usr/local/bin/text-nlu"]
