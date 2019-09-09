@@ -30,13 +30,9 @@ std::vector<std::string> nlu::getDomains(){
 
   std::vector<std::string> domain_list;
 
-  // TODO: Improve way to get absolute path to the config file.
-  std::string filename = "/opt/text-nlu/models/models_config.yaml";
-
   tensorflow::serving::ModelServerConfig *server_config = new tensorflow::serving::ModelServerConfig();
 
-
-  int fileDescriptor = open(filename.c_str(), O_RDONLY);
+  int fileDescriptor = open(_model_config_path.c_str(), O_RDONLY);
   if( fileDescriptor < 0 ) {
     std::cerr << " Error opening the file " << std::endl;
     return domain_list;

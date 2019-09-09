@@ -1,0 +1,17 @@
+version: "3"
+services:
+  nlu:
+    image: text-nlu:latest
+    ports:
+      - "9009:9009"
+    volumes:
+      - ./models:/models
+    command: -c config.yaml -d -g
+    # TODO: use env variable instead later
+  tensorflow_serving:
+    image: "tensorflow/serving:latest"
+    volumes:
+      - ./models:/models
+    command: --model_config_file=/models/models_config.yaml
+    # We can't set MODEL_CONFIG_FILE environment variable:
+    # See https://github.com/tensorflow/serving/issues/1165

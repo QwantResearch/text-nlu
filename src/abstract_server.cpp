@@ -6,10 +6,10 @@
 AbstractServer::AbstractServer(string &config_file, int debug_mode){
   _debug_mode = debug_mode;
 
+  ProcessConfigFile(config_file);
+
   _nlu = make_shared<nlu>(debug_mode, _model_config_path);
   // TODO: Test if NLU started correctly
-
-  ProcessConfigFile(config_file);
 }
 
 void AbstractServer::ProcessConfigFile(std::string &config_file) {
