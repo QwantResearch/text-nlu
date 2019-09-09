@@ -18,7 +18,7 @@ docker network create text-nlu-net
 
 ## Launch the TFserving
 ```
-docker run -t --rm -p 8500:8500 -v "$(pwd)/resources/:/models/" --name tensorflow_serving --network text-nlu-net tensorflow/serving:latest  --model_config_file=/models/models_config.yaml
+docker run -t --rm -p 8500:8500 -v "$(pwd)/models/:/models/" --name tensorflow_serving --network text-nlu-net tensorflow/serving:latest  --model_config_file=/models/models_config.yaml
 ```
 
 ## Launch the API

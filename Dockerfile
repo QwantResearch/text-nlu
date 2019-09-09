@@ -52,8 +52,7 @@ RUN cmake --version
 
 RUN python3 -m pip install grpcio grpcio-tools
 
-RUN git clone --recursive https://github.com/QwantResearch/text-nlu.git /opt/text-nlu
-#COPY . /opt/text-nlu
+COPY . /opt/text-nlu
 
 WORKDIR /opt/text-nlu
 
