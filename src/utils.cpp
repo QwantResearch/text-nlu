@@ -14,27 +14,6 @@ void printCookies(const Pistache::Http::Request &req) {
   std::cout << "]" << std::endl;
 }
 
-void Split(const std::string &line, std::vector<std::string> &pieces,
-           const std::string del) {
-  size_t begin = 0;
-  size_t pos = 0;
-  std::string token;
-
-  while ((pos = line.find(del, begin)) != std::string::npos) {
-    if (pos > begin) {
-      token = line.substr(begin, pos - begin);
-      if (token.size() > 0)
-        pieces.push_back(token);
-    }
-    begin = pos + del.size();
-  }
-  if (pos > begin) {
-    token = line.substr(begin, pos - begin);
-  }
-  if (token.size() > 0)
-    pieces.push_back(token);
-}
-
 const std::string currentDateTime() {
   time_t now = time(0);
   struct tm tstruct;

@@ -11,9 +11,9 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt-get -y update && \
     apt-get -y install \
-	curl \
+ 	curl \
  	vim
-	
+ 	
 
 #RUN echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list
 #RUN curl https://bazel.build/bazel-release.pub.gpg | apt-key add -
@@ -23,31 +23,26 @@ RUN apt-get -y update && \
     apt-get -y install \
         openjdk-11-jdk \
         bash-completion \
-        libgrpc++-dev \
-        libgrpc-dev \
-        protobuf-compiler-grpc \
         golang \
         python3-numpy \
         python3-scipy \
         python3-pip \
-	libtool \
+ 	libtool \
         cmake \
         g++ \
         libboost-locale1.65-dev \
         libboost-regex1.65-dev \
         libyaml-cpp-dev \
         git \
-        automake
-
-ADD https://github.com/bazelbuild/bazel/releases/download/0.11.0/bazel_0.11.0-linux-x86_64.deb /tmp/bazel_0.11.0-linux-x86_64.deb
-RUN dpkg -i /tmp/bazel_0.11.0-linux-x86_64.deb
-
-# COPY vendor/bazel/bazel_0.11.0-linux-x86_64.deb /tmp 
-# RUN dpkg -i /tmp/bazel_0.11.0-linux-x86_64.deb
-
-# N cd vendor/bazel && dpkg -i bazel_0.11.0-linux-x86_64.deb
-
-# RUN python -m pip install tensorflow-serving-api
+        automake \
+        build-essential \
+        autoconf \
+        pkg-config \
+        clang \
+        libc++-dev \
+        libssl-dev \
+        libgflags-dev \
+        libgtest-dev
  
 ADD https://cmake.org/files/v3.9/cmake-3.9.0-Linux-x86_64.sh /tmp/cmake-3.9.0-Linux-x86_64.sh
 RUN mkdir /opt/cmake
@@ -55,24 +50,19 @@ RUN sh /tmp/cmake-3.9.0-Linux-x86_64.sh --prefix=/opt/cmake --skip-license
 RUN ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
 RUN cmake --version
 
+RUN python3 -m pip install grpcio grpcio-tools
 
 RUN git clone --recursive https://github.com/QwantResearch/text-nlu.git /opt/text-nlu
 #COPY . /opt/text-nlu
 
 WORKDIR /opt/text-nlu
 
-RUN git checkout develop
-
-RUN ln -s /usr/bin/python3 /usr/bin/python
-
-RUN bash ./tfinstall.sh
+RUN bash ./install_grpc.sh
 
 RUN bash ./install.sh
 
-#RUN ./install.sh
+RUN groupadd -r qnlp && useradd --system -s /bin/bash -g qnlp qnlp
 
-#RUN groupadd -r qnlp && useradd --system -s /bin/bash -g qnlp qnlp
+USER qnlp 
 
-#USER qnlp 
-
-#ENTRYPOINT ["/usr/local/bin/text-nlu"]
+ENTRYPOINT ["/usr/local/bin/text-nlu"]

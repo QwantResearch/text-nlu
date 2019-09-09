@@ -5,68 +5,14 @@
 #include "nlu.h"
 #include "utils.h"
 
-rest_server::rest_server(std::string &config_file, int &threads, int debug) 
-{
-    std::string line;
-    int port=9009;
-    YAML::Node config;
 
-    try 
-    {
-    // Reading the configuration file for filling the options.
-        config = YAML::LoadFile(config_file);
-        cout << "[INFO]\tDomain\t\tLocation/filename\t\tlanguage"<< endl;
-        threads = config["threads"].as<int>() ;
-        port =  config["port"].as<int>() ;
-        debug =  config["debug"].as<int>() ;
-        YAML::Node modelconfig = config["models"]; 
-        for (const auto& modelnode: modelconfig)
-        {
-            std::string domain=modelnode.first.as<std::string>();
-            YAML::Node modelinfos = modelnode.second;
-            std::string nlu_model_filename=modelinfos["nlu_model"].as<std::string>();
-            std::string lang=modelinfos["language"].as<std::string>();
-            try 
-            {
-//                 shared_ptr<Channel> channel = CreateChannel(nlu_model_filename,grpc::InsecureChannelCredentials());
-                nlu* nlu_pointer = new nlu(nlu_model_filename, domain, lang);
-                _list_nlu.push_back(nlu_pointer);
-                cout << "\t===> loaded" << endl;
-            } 
-            catch (invalid_argument& inarg) 
-            {
-                cerr << "[ERROR]\t" << inarg.what() << endl;
-                continue;
-            }
-        }
-    } catch (YAML::BadFile& bf) {
-      cerr << "[ERROR]\t" << bf.what() << endl;
-      exit(1);
-    }
-    _nbr_threads=threads;
-    cout << "[INFO]\tnumber of threads:\t"<< _nbr_threads << endl;
-    cout << "[INFO]\tport used:\t"<< port << endl;
-    if (debug > 0) cout << "[INFO]\tDebug mode activated" << endl;
-    else cout << "[INFO]\tDebug mode desactivated" << endl;
-    if ((int)_list_nlu.size() == 0) 
-    {
-        cerr << "[ERROR]\tNo nlu model loaded, exiting." << endl;
-        exit(1);
-    }
-    
-    
-    
-    // Creating the entry point of the REST API.
-    Pistache::Port pport(port);
-    Address addr(Ipv4::any(), pport);
-    httpEndpoint = std::make_shared<Http::Endpoint>(addr);
-    _debug_mode = debug;
+void rest_server::init(size_t thr) {
+  // Creating the entry point of the REST API.
+  Pistache::Port pport(_num_port);
+  Address addr(Ipv4::any(), pport);
+  httpEndpoint = std::make_shared<Http::Endpoint>(addr);
 
-}
-
-
-void rest_server::init() {
-  auto opts = Http::Endpoint::options().threads(_nbr_threads).flags(
+  auto opts = Http::Endpoint::options().threads(thr).flags(
       Tcp::Options::InstallSignalHandler);
   httpEndpoint->init(opts);
   setupRoutes();
@@ -100,12 +46,15 @@ void rest_server::doNLUGet(const Rest::Request &request,
       "GET, POST, DELETE, OPTIONS");
   response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
   response.headers().add<Http::Header::ContentType>(MIME(Application, Json));
+
+  std::vector<std::string> list_nlu = _nlu->getDomains();
+
   string response_string = "{\"nlu-domains\":[";
-  for (int inc = 0; inc < (int)_list_nlu.size(); inc++) {
+  for (int inc = 0; inc < (int)list_nlu.size(); inc++) {
     if (inc > 0)
       response_string.append(",");
     response_string.append("\"");
-    response_string.append(_list_nlu.at(inc)->getDomain());
+    response_string.append(list_nlu.at(inc));
     response_string.append("\"");
   }
   response_string.append("]}");
@@ -241,18 +190,8 @@ void rest_server::fetchParamWithDefault(const nlohmann::json& j,
 
 bool rest_server::askNLU(std::string &text, std::string &tokenized_text, json &output, string &domain, string &lang, bool debugmode)
 {
-    auto it_nlu = std::find_if(_list_nlu.begin(), _list_nlu.end(), [&](nlu* l_nlu) 
-    {
-        return (l_nlu->getDomain() == domain && l_nlu->getLang() == lang);
-    }); 
-    if (it_nlu == _list_nlu.end())
-    {
-        cerr << "[ERROR]\t" << currentDateTime() << "\tRESPONSE\t" << "`domain` value is not valid ("+domain+") for NLU" << endl;
-        return false;
-    }
-    
-    tokenized_text = (*it_nlu)->tokenize_str(text);
-    std::vector<std::string> tokenized_vec = (*it_nlu)->tokenize(text);
+    tokenized_text = _nlu->tokenize_str(text, lang);
+    std::vector<std::string> tokenized_vec = _nlu->tokenize(text, lang);
 
     vector<vector<string> > tokenized_batched ;
     vector<string> tokenized_vec_tmp;
@@ -276,16 +215,7 @@ bool rest_server::askNLU(std::string &text, std::string &tokenized_text, json &o
 bool rest_server::askNLU(vector<vector<string> > &input, json &output, string &domain, string &lang, bool debugmode)
 {
     vector<vector<string> > result_batched ;
-    auto it_nlu = std::find_if(_list_nlu.begin(), _list_nlu.end(), [&](nlu* l_nlu) 
-    {
-        return (l_nlu->getDomain() == domain && l_nlu->getLang() == lang);
-    }); 
-    if (it_nlu == _list_nlu.end())
-    {
-        cerr << "[ERROR]\t" << currentDateTime() << "\tRESPONSE\t" << "`domain` value is not valid ("+domain+") for NLU" << endl;
-        return false;
-    }
-    (*it_nlu)->NLUBatch(input,result_batched);
+    _nlu->NLUBatch(input,result_batched, domain);
     
     json i_tmp = json::array();
     json k_tmp = json::array();
@@ -350,4 +280,8 @@ void rest_server::doAuth(const Rest::Request &request,
   printCookies(request);
   response.cookies().add(Http::Cookie("lang", "fr-FR"));
   response.send(Http::Code::Ok);
+}
+
+void rest_server::shutdown() {
+  httpEndpoint->shutdown(); 
 }

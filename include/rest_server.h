@@ -16,32 +16,25 @@
 #include <time.h>
 #include "yaml-cpp/yaml.h"
 
-#include "nlu.h"
-#include "tokenizer.h"
+#include "abstract_server.h"
 
 using namespace std;
 using namespace nlohmann;
 using namespace Pistache;
 
-class rest_server {
+class rest_server : public AbstractServer {
 
 public:
-  rest_server(string &config_file, int &threads, int debug_mode = 0);
+  using AbstractServer::AbstractServer;
   ~rest_server(){httpEndpoint->shutdown();};
 
-  void init();
-  void start();
-  void shutdown() { httpEndpoint->shutdown();}
+  void init(size_t thr = 2) override;
+  void start() override;
+  void shutdown() override;
 
 private:
-  int _debug_mode;
-  int _nbr_threads;
-  std::vector<nlu *> _list_nlu;
   std::shared_ptr<Http::Endpoint> httpEndpoint;
   Rest::Router router;
-  typedef std::mutex Lock;
-  typedef std::lock_guard<Lock> Guard;
-  Lock nluLock;
 
   void setupRoutes();
 
@@ -60,7 +53,6 @@ private:
                               int& count,
                               float& threshold,
                               bool& debugmode);
-
   bool askNLU(std::string &text, std::string &tokenized, json &output, string &domain, string &lang, bool debugmode);
   bool askNLU(vector<vector<string> > &input, json &output, string &domain, string &lang, bool debugmode);
 
