@@ -6,8 +6,14 @@ services:
       - "9009:9009"
     volumes:
       - ./models:/models
-    command: -c config.yaml -d -g
-    # TODO: use env variable instead later
+    environment:
+      API_TC_TFSERVING_HOST: tensorflow_serving:8500
+      API_TC_THREADS: 1
+      API_TC_PORT: 9009
+      API_TC_CONFIG: /models/models_config.yaml
+      API_TC_GRPC: 0
+      API_TC_DEBUG: 1
+
   tensorflow_serving:
     image: "tensorflow/serving:latest"
     volumes:

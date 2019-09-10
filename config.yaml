@@ -1,5 +1,0 @@
-port: 9009
-threads: 2
-debug: 1
-model_config_path: /models/models_config.yaml
-#TODO: use ENV variables in docker-compose instead

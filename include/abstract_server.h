@@ -15,7 +15,7 @@ using namespace std;
 
 class AbstractServer {
 public:
-    AbstractServer(string &config_file, int debug_mode);
+    AbstractServer(std::string &model_config_path, std::string& tfserving_host, int num_port, int debug_mode);
     virtual ~AbstractServer() {}
     virtual void init(size_t thr = 2) = 0;
     virtual void start() = 0;
@@ -26,9 +26,8 @@ protected:
   int _num_port;
   int _nbr_threads;
   std::string _model_config_path;
+  std::string _tfserving_host;
   std::shared_ptr<nlu> _nlu;
-
-  void ProcessConfigFile(std::string &config_file);
 };
 
 #endif // __ABSTRACT_SERVER_H

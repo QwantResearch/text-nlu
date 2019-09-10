@@ -9,9 +9,9 @@ bool nlu::getLocal()
     return _local;
 }
 
-nlu::nlu(int debug_mode, std::string model_config_path)
+nlu::nlu(int debug_mode, std::string model_config_path, std::string tfserving_host)
 {
-    std::string channel("tensorflow_serving:8500");
+    std::string channel(tfserving_host);
     _stub = PredictionService::NewStub(CreateChannel(channel, grpc::InsecureChannelCredentials()));
     _local=true;
     _debug_mode=debug_mode;
