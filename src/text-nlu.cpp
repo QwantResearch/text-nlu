@@ -107,7 +107,7 @@ void ProcessArgs(int argc, char **argv) {
     }
   }
   if (model_config_path == "" || tfserving_host == "") {
-    cerr << "[ERROR]\t" << currentDateTime() << "\tError, you must set a model_config_path"
+    cerr << "[ERROR]\t" << currentDateTime() << "\tError, you must set a model_config_path "
          << "and a tfserving_host" << endl;
     usage();
     exit(1);

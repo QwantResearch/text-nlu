@@ -24,7 +24,7 @@ nlu::nlu(int debug_mode, std::string model_config_path, std::string tfserving_ho
 std::vector<std::string> nlu::getDomains(){
   // We can't get the list of models from tfserving. 
   // See: https://github.com/tensorflow/serving/pull/797
-  // Instead we read it directly from models_config.yaml.
+  // Instead we read it directly from models.config.
   // As it is possible to change the config file on the fly,
   // we don't store the retrieved information.
 
