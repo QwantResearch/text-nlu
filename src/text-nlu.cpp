@@ -115,39 +115,39 @@ void ProcessArgs(int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
-  if (getenv("API_TC_THREADS") != NULL) 
+  if (getenv("API_NLU_THREADS") != NULL) 
   { 
-      threads=atoi(getenv("API_TC_THREADS")); 
+      threads=atoi(getenv("API_NLU_THREADS")); 
       set_envvar[0]=1; 
       cout << "[INFO]\t" << currentDateTime() << "\tSetting the threads value to "<< threads <<", given by environment variable." << endl;
   }
-  if (getenv("API_TC_PORT") != NULL) 
+  if (getenv("API_NLU_PORT") != NULL) 
   { 
-      num_port=atoi(getenv("API_TC_PORT")); 
+      num_port=atoi(getenv("API_NLU_PORT")); 
       set_envvar[1]=1; 
       cout << "[INFO]\t" << currentDateTime() << "\tSetting the port value to "<< num_port <<", given by environment variable." << endl;
   }
-  if (getenv("API_TC_GRPC") != NULL) 
+  if (getenv("API_NLU_GRPC") != NULL) 
   { 
-      server_type = atoi(getenv("API_TC_GRPC")); 
+      server_type = atoi(getenv("API_NLU_GRPC")); 
       set_envvar[2]=1; 
       cout << "[INFO]\t" << currentDateTime() << "\tSetting the gRPC value to "<< server_type <<", given by environment variable." << endl;
   }
-  if (getenv("API_TC_DEBUG") != NULL) 
+  if (getenv("API_NLU_DEBUG") != NULL) 
   { 
-      debug = atoi(getenv("API_TC_DEBUG")); 
+      debug = atoi(getenv("API_NLU_DEBUG")); 
       set_envvar[3]=1; 
       cout << "[INFO]\t" << currentDateTime() << "\tSetting the debug value to "<< debug <<", given by environment variable." << endl;
   }
-  if (getenv("API_TC_CONFIG") != NULL) 
+  if (getenv("API_NLU_CONFIG") != NULL) 
   { 
-      model_config_path=getenv("API_TC_CONFIG"); 
+      model_config_path=getenv("API_NLU_CONFIG"); 
       set_envvar[4]=1; 
       cout << "[INFO]\t" << currentDateTime() << "\tSetting the config filename value to "<< model_config_path <<", given by environment variable." << endl;
   }
-  if (getenv("API_TC_TFSERVING_HOST") != NULL) 
+  if (getenv("API_NLU_TFSERVING_HOST") != NULL) 
   { 
-      tfserving_host=getenv("API_TC_TFSERVING_HOST"); 
+      tfserving_host=getenv("API_NLU_TFSERVING_HOST"); 
       set_envvar[5]=1; 
       cout << "[INFO]\t" << currentDateTime() << "\tSetting the TFServing host value to "<< tfserving_host <<", given by environment variable." << endl;
   }
