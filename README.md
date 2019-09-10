@@ -12,11 +12,29 @@ docker build -t text-nlu:latest .
 ``` 
 
 ## Start using Docker Compose
-Use docker-compose to start the TFserving and the text-nlu:
+This is the easiest way to start text-nlu service.
+Docker-compose starts both the TFserving and the text-nlu:
 ```
 docker-compose up
 ```
-You can change params in the docker-compose.yml.
+You can change environment variables in the docker-compose.yml.
+
+## Starting text-nlu locally
+If you want to start text-nlu locally, make sure you have a tensorflow serving server running.
+Then launch text-nlu using:
+```
+./text-nlu [--threads <nthreads>] [--port <port>] [--grpc] [--debug] 
+           --model_config_path <filename> --tfserving_host <address:port>
+
+        --threads (-t)           number of threads (default 1)
+        --port (-p)              port to use (default 9009)
+        --grpc (-g)              use grpc service instead of rest
+        --debug (-d)             debug mode (default false)
+        --model_config_path (-c) model_config_path file in which API configuration is set (needed)
+        --tfserving_host (-s)    TFServing host (needed)
+        --help (-h)              Show this message
+```
+You can also set environment variables instead of args, as in docker-compose.yml file.
 
 ## Licencing
 

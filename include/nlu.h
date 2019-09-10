@@ -65,7 +65,7 @@ std::vector<T> FlattenVector(const std::vector<std::vector<std::vector<T> > >& v
 class nlu
 {
     public:
-        nlu(int debug_mode, std::string model_config_path);
+        nlu(int debug_mode, std::string model_config_path, std::string tfserving_host);
         ~nlu(){delete(_tokenizer);};
         std::vector<std::string> getDomains();
         bool getLocal();
