@@ -81,6 +81,8 @@ class nlu
           std::string domain);
         bool CheckModelsStatus();
     private:
+      static map<tensorflow::serving::ModelVersionStatus_State, std::string> mapState;
+
       unique_ptr<PredictionService::Stub> _stub;
       shared_ptr<Channel> _channel;
 
@@ -96,7 +98,6 @@ class nlu
         std::vector<std::vector<std::vector<std::string>>>& chars_list_batch,
         std::vector<std::vector<std::string>>& batch_tokens, 
         int max_length_word);
-      std::string getModelStatusStringState(tensorflow::serving::ModelVersionStatus_State state);
 };
 
 
