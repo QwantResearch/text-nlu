@@ -38,7 +38,11 @@ grpc::Status GrpcRouteNLUImpl::GetNLU(grpc::ServerContext* context,
   tokenized_batched.push_back(tokenized_vec);
  
   std::vector<std::vector<std::string>> output_batch_tokens;
-  _nlu->NLUBatch(tokenized_batched, output_batch_tokens, domain);
+  Status status = _nlu->NLUBatch(tokenized_batched, output_batch_tokens, domain);
+  if (!status.ok()){
+    return status;
+  }
+  
   response->set_tokenized(tokenized_text);
 
   SetOutput(response, tokenized_batched, output_batch_tokens);
@@ -73,7 +77,11 @@ grpc::Status GrpcRouteNLUImpl::StreamNLU(grpc::ServerContext* context,
     tokenized_batched.push_back(tokenized_vec);
   
     std::vector<std::vector<std::string>> output_batch_tokens;
-    _nlu->NLUBatch(tokenized_batched, output_batch_tokens, domain);
+    Status status =_nlu->NLUBatch(tokenized_batched, output_batch_tokens, domain);
+    if (!status.ok()){
+      return status;
+    }
+
     response.set_tokenized(tokenized_text);
 
     SetOutput(&response, tokenized_batched, output_batch_tokens);

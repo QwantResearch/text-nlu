@@ -15,12 +15,15 @@
 #include <sstream>
 #include <time.h>
 #include "yaml-cpp/yaml.h"
+#include <grpcpp/grpcpp.h>
 
 #include "abstract_server.h"
 
 using namespace std;
 using namespace nlohmann;
 using namespace Pistache;
+
+using grpc::Status;
 
 class rest_server : public AbstractServer {
 
@@ -53,8 +56,8 @@ private:
                               int& count,
                               float& threshold,
                               bool& debugmode);
-  bool askNLU(std::string &text, std::string &tokenized, json &output, string &domain, string &lang, bool debugmode);
-  bool askNLU(vector<vector<string> > &input, json &output, string &domain, string &lang, bool debugmode);
+  Status askNLU(std::string &text, std::string &tokenized, json &output, string &domain, string &lang, bool debugmode);
+  Status askNLU(vector<vector<string> > &input, json &output, string &domain, string &lang, bool debugmode);
 
   void writeLog(string text_to_log) {}
 

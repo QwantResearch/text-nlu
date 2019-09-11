@@ -20,6 +20,7 @@
 #include "tensorflow_serving/config/model_server_config.grpc.pb.h"
 
 #include "tokenizer.h"
+#include "utils.h"
 
 
 #include <grpcpp/grpcpp.h>
@@ -73,7 +74,7 @@ class nlu
         std::vector <std::string> tokenize(std::string &input, std::string lang);
         std::string tokenize_str(std::string &input, std::string lang);
 
-        bool NLUBatch(
+        Status NLUBatch(
           std::vector<std::vector<std::string> >& batch_tokens,
           std::vector<std::vector<std::string> >& output_batch_tokens,
           std::string domain);

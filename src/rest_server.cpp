@@ -90,7 +90,11 @@ void rest_server::doNLUPost(const Rest::Request &request,
     string tokenized;
     if (_debug_mode != 0)
       cerr << "[DEBUG]\t" << currentDateTime() << "\t" << "ASK NLU:\t" << j << endl;
-    askNLU(text, tokenized, j, domain, lang, debugmode);
+    Status status = askNLU(text, tokenized, j, domain, lang, debugmode);
+    if (!status.ok()){
+      response.headers().add<Http::Header::ContentType>(MIME(Application, Json));
+      response.send(Http::Code::Internal_Server_Error, std::string(status.error_message()));
+    }
     j.push_back(nlohmann::json::object_t::value_type(string("tokenized"), tokenized));
 
     std::string s = j.dump();
@@ -133,7 +137,11 @@ void rest_server::doNLUBatchPost(const Rest::Request &request,
         string tokenized;
         if (_debug_mode != 0)
           cerr << "[DEBUG]\t" << currentDateTime() << "\tASK NLU:\t" << it << endl;
-        askNLU(text, tokenized, it, domain, lang, debugmode);
+        Status status = askNLU(text, tokenized, it, domain, lang, debugmode);
+        if (!status.ok()){
+          response.headers().add<Http::Header::ContentType>(MIME(Application, Json));
+          response.send(Http::Code::Internal_Server_Error, std::string(status.error_message()));
+        }
         it.push_back(nlohmann::json::object_t::value_type(string("tokenized"), tokenized));
       }
       else 
@@ -188,7 +196,7 @@ void rest_server::fetchParamWithDefault(const nlohmann::json& j,
   }
 }
 
-bool rest_server::askNLU(std::string &text, std::string &tokenized_text, json &output, string &domain, string &lang, bool debugmode)
+Status rest_server::askNLU(std::string &text, std::string &tokenized_text, json &output, string &domain, string &lang, bool debugmode)
 {
     tokenized_text = _nlu->tokenize_str(text, lang);
     std::vector<std::string> tokenized_vec = _nlu->tokenize(text, lang);
@@ -212,10 +220,13 @@ bool rest_server::askNLU(std::string &text, std::string &tokenized_text, json &o
     return askNLU(tokenized_batched, output, domain, lang, debugmode);
 }
 
-bool rest_server::askNLU(vector<vector<string> > &input, json &output, string &domain, string &lang, bool debugmode)
+Status rest_server::askNLU(vector<vector<string> > &input, json &output, string &domain, string &lang, bool debugmode)
 {
     vector<vector<string> > result_batched ;
-    _nlu->NLUBatch(input,result_batched, domain);
+    Status status = _nlu->NLUBatch(input,result_batched, domain);
+    if (!status.ok()){
+      return status;
+    }
     
     json i_tmp = json::array();
     json k_tmp = json::array();
@@ -271,7 +282,7 @@ bool rest_server::askNLU(vector<vector<string> > &input, json &output, string &d
     }
     if (debugmode) output.push_back(nlohmann::json::object_t::value_type(string("NLU_DEBUG"), i_tmp));
     output.push_back(nlohmann::json::object_t::value_type(string("NLU"), k_tmp));
-    return true;
+    return status;
 }
 
 
