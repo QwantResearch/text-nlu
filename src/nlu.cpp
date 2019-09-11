@@ -22,8 +22,7 @@ bool nlu::getLocal()
 
 nlu::nlu(int debug_mode, std::string model_config_path, std::string tfserving_host)
 {
-    std::string channel_string(tfserving_host);
-    _channel = CreateChannel(channel_string, grpc::InsecureChannelCredentials());
+    _channel = CreateChannel(tfserving_host, grpc::InsecureChannelCredentials());
 
     _stub = PredictionService::NewStub(_channel);
     _local=true;
@@ -55,7 +54,7 @@ bool nlu::CheckModelsStatus() {
       return false;
     }
     
-    // We currently support only one version per model, that's why we have check only first model_version_status
+    // We currently support only one version per model, that's why we check only first model_version_status
     if (_debug_mode){
       tensorflow::serving::ModelVersionStatus_State state = response.model_version_status().at(0).state();
       cerr << "[DEBUG]\t" << currentDateTime() << "\t" << domain << " model status: " << mapState[state] << endl;
