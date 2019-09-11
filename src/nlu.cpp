@@ -11,14 +11,65 @@ bool nlu::getLocal()
 
 nlu::nlu(int debug_mode, std::string model_config_path, std::string tfserving_host)
 {
-    std::string channel(tfserving_host);
-    _stub = PredictionService::NewStub(CreateChannel(channel, grpc::InsecureChannelCredentials()));
+    std::string channel_string(tfserving_host);
+    _channel = CreateChannel(channel_string, grpc::InsecureChannelCredentials());
+
+    _stub = PredictionService::NewStub(_channel);
     _local=true;
     _debug_mode=debug_mode;
     _model_config_path = model_config_path;
+
+    bool status = CheckModelsStatus();
     if (debug_mode){
-      cerr << "[DEBUG]\t" << currentDateTime() << "\tNLU initialized successfully." << std::endl;
+      if (status)
+        cerr << "[DEBUG]\t" << currentDateTime() << "\tNLU initialized successfully." << endl;
+      else
+        cerr << "[ERROR]\t" << currentDateTime() << "\tSome models were not initialized successfully." << endl;
     }
+}
+
+bool nlu::CheckModelsStatus() {
+  unique_ptr<ModelService::Stub> model_stub = ModelService::NewStub(_channel);
+
+  for (auto& domain: getDomains()){
+    ClientContext context;
+    tensorflow::serving::GetModelStatusRequest request;
+    tensorflow::serving::GetModelStatusResponse response;
+
+    request.mutable_model_spec()->set_name(string(domain));
+    Status status = model_stub->GetModelStatus(&context, request, &response);
+
+    if (!status.ok()){
+      cerr << "[ERROR]\t" << currentDateTime() << "\tTensorflow serving failed to get status of " << domain << " model." << endl;
+      return false;
+    }
+    
+    // We currently support only one version per model, that's why we have check only first model_version_status
+    if (_debug_mode){
+      tensorflow::serving::ModelVersionStatus_State state = response.model_version_status().at(0).state();
+      cerr << "[DEBUG]\t" << currentDateTime() << "\t" << domain << " model status: " << getModelStatusStringState(state) << endl;
+    } 
+  }
+  return true;
+}
+
+std::string nlu::getModelStatusStringState(tensorflow::serving::ModelVersionStatus_State state) {
+  // See get_model_status.proto for more information on State ENUM
+  switch(state){
+    case tensorflow::serving::ModelVersionStatus_State_UNKNOWN:
+      return "UNKNOWN";
+    case tensorflow::serving::ModelVersionStatus_State_START:
+      return "START";
+    case tensorflow::serving::ModelVersionStatus_State_LOADING:
+      return "LOADING";
+    case tensorflow::serving::ModelVersionStatus_State_AVAILABLE:
+      return "AVAILABLE";
+    case tensorflow::serving::ModelVersionStatus_State_UNLOADING:
+      return "UNLOADING";
+    case tensorflow::serving::ModelVersionStatus_State_END:
+      return "END";
+  }
+  return "UNKNOWN";
 }
 
 std::vector<std::string> nlu::getDomains(){

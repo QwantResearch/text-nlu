@@ -17,7 +17,7 @@
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 
 #include "tensorflow_serving/apis/prediction_service.grpc.pb.h"
-#include "tensorflow_serving/config/model_server_config.grpc.pb.h"
+#include "tensorflow_serving/apis/model_service.grpc.pb.h"
 
 #include "tokenizer.h"
 #include "utils.h"
@@ -32,6 +32,7 @@ using grpc::Status;
 using tensorflow::serving::PredictRequest;
 using tensorflow::serving::PredictResponse;
 using tensorflow::serving::PredictionService;
+using tensorflow::serving::ModelService;
 
 typedef google::protobuf::Map<std::string, tensorflow::TensorProto> OutMap;
 
@@ -78,8 +79,10 @@ class nlu
           std::vector<std::vector<std::string> >& batch_tokens,
           std::vector<std::vector<std::string> >& output_batch_tokens,
           std::string domain);
+        bool CheckModelsStatus();
     private:
       unique_ptr<PredictionService::Stub> _stub;
+      shared_ptr<Channel> _channel;
 
       bool _local;
       tokenizer * _tokenizer;
@@ -93,6 +96,7 @@ class nlu
         std::vector<std::vector<std::vector<std::string>>>& chars_list_batch,
         std::vector<std::vector<std::string>>& batch_tokens, 
         int max_length_word);
+      std::string getModelStatusStringState(tensorflow::serving::ModelVersionStatus_State state);
 };
 
 
