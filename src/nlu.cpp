@@ -4,6 +4,17 @@
 
 using namespace std;
 
+// Initialize ModelState const
+map<tensorflow::serving::ModelVersionStatus_State, std::string> nlu::mapState = {
+  {tensorflow::serving::ModelVersionStatus_State_UNKNOWN, "UNKNOWN"},
+  {tensorflow::serving::ModelVersionStatus_State_START, "START"},
+  {tensorflow::serving::ModelVersionStatus_State_LOADING, "LOADING"},
+  {tensorflow::serving::ModelVersionStatus_State_AVAILABLE, "AVAILABLE"},
+  {tensorflow::serving::ModelVersionStatus_State_UNLOADING, "UNLOADING"},
+  {tensorflow::serving::ModelVersionStatus_State_END, "END"}
+};
+
+
 bool nlu::getLocal()
 {
     return _local;
@@ -47,29 +58,10 @@ bool nlu::CheckModelsStatus() {
     // We currently support only one version per model, that's why we have check only first model_version_status
     if (_debug_mode){
       tensorflow::serving::ModelVersionStatus_State state = response.model_version_status().at(0).state();
-      cerr << "[DEBUG]\t" << currentDateTime() << "\t" << domain << " model status: " << getModelStatusStringState(state) << endl;
+      cerr << "[DEBUG]\t" << currentDateTime() << "\t" << domain << " model status: " << mapState[state] << endl;
     } 
   }
   return true;
-}
-
-std::string nlu::getModelStatusStringState(tensorflow::serving::ModelVersionStatus_State state) {
-  // See get_model_status.proto for more information on State ENUM
-  switch(state){
-    case tensorflow::serving::ModelVersionStatus_State_UNKNOWN:
-      return "UNKNOWN";
-    case tensorflow::serving::ModelVersionStatus_State_START:
-      return "START";
-    case tensorflow::serving::ModelVersionStatus_State_LOADING:
-      return "LOADING";
-    case tensorflow::serving::ModelVersionStatus_State_AVAILABLE:
-      return "AVAILABLE";
-    case tensorflow::serving::ModelVersionStatus_State_UNLOADING:
-      return "UNLOADING";
-    case tensorflow::serving::ModelVersionStatus_State_END:
-      return "END";
-  }
-  return "UNKNOWN";
 }
 
 std::vector<std::string> nlu::getDomains(){
