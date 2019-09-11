@@ -12,6 +12,8 @@
 #include "nlu.h"
 #include "utils.h"
 
+using grpc::Status;
+
 class GrpcRouteNLUImpl : public RouteNLU::Service {
 public:
     GrpcRouteNLUImpl(shared_ptr<nlu> nlu_ptr, int debug_mode);

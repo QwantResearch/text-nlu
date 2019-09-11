@@ -17,7 +17,7 @@ nlu::nlu(int debug_mode, std::string model_config_path, std::string tfserving_ho
     _debug_mode=debug_mode;
     _model_config_path = model_config_path;
     if (debug_mode){
-      std::cout << "NLU initialized successfully." << std::endl;
+      cerr << "[DEBUG]\t" << currentDateTime() << "\tNLU initialized successfully." << std::endl;
     }
 }
 
@@ -34,7 +34,7 @@ std::vector<std::string> nlu::getDomains(){
 
   int fileDescriptor = open(_model_config_path.c_str(), O_RDONLY);
   if( fileDescriptor < 0 ) {
-    std::cerr << " Error opening the file " << std::endl;
+    cerr << "[ERROR]\t" << currentDateTime() << "\tError opening the file " << std::endl;
     return domain_list;
   }
 
@@ -42,7 +42,7 @@ std::vector<std::string> nlu::getDomains(){
   fileInput.SetCloseOnDelete( true );
 
   if (!google::protobuf::TextFormat::Parse(&fileInput, server_config)) {
-    cerr << std::endl << "Failed to parse file!" << endl;
+    cerr << "[ERROR]\t" << currentDateTime() << "\tFailed to parse file!" << endl;
     return domain_list;
   }
 
@@ -108,7 +108,7 @@ void nlu::getBatchCharsListFromBatchTokens(
   }
 }
 
-bool nlu::NLUBatch(
+Status nlu::NLUBatch(
     std::vector<std::vector<std::string> >& batch_tokens,
     std::vector<std::vector<std::string> >& output_batch_tokens,
     std::string domain) {
@@ -151,7 +151,6 @@ bool nlu::NLUBatch(
   tokens_tensor.mutable_tensor_shape()->add_dim()->set_size(max_length);
 
   inputs["tokens"] = tokens_tensor;
-  std::cout << "Generate tokens_tensor ok." << std::endl;
 
   // PROTO: chars_tensor
   tensorflow::TensorProto chars_tensor;
@@ -170,7 +169,6 @@ bool nlu::NLUBatch(
   chars_tensor.mutable_tensor_shape()->add_dim()->set_size(max_length_word);
 
   inputs["chars"] = chars_tensor;
-  std::cout << "Generate chars_tensor ok." << std::endl;
 
   // PROTO: lengths_tensor
   tensorflow::TensorProto lengths_tensor;
@@ -182,15 +180,12 @@ bool nlu::NLUBatch(
   lengths_tensor.mutable_tensor_shape()->add_dim()->set_size(batch_size);
 
   inputs["length"] = lengths_tensor;
-  std::cout << "Generate lengths_tensor ok." << std::endl;
 
   // The actual RPC.
   Status status = _stub->Predict(&context, request, &response);
   
   // Act upon its status.
   if (status.ok()) {
-    std::cout << "call predict ok" << std::endl;
-    std::cout << "outputs size is " << response.outputs_size() << std::endl;
 
     OutMap& map_outputs = *response.mutable_outputs();
     OutMap::iterator iter;
@@ -211,20 +206,20 @@ bool nlu::NLUBatch(
           output_batch_tokens.push_back(output_tokens);
           current_index++;
         }
-      } else {
-        std::cout << "other section: " << section << std::endl;
       }
       ++output_index;
     }
    
   } else {
-    // TODO: Deal with model not found
-    std::cout << "gRPC call return code: " << status.error_code() << ": "
-              << status.error_message() << std::endl;
-    return "RPC failed";
-  }
+    cerr << "[ERROR]\t" << currentDateTime() << "\tError: gRPC call return code: " 
+         << status.error_code() << ": "
+         << status.error_message() << std::endl;
 
-  return true;
+    if (status.error_code() == grpc::StatusCode::NOT_FOUND)
+      return Status(grpc::StatusCode::NOT_FOUND, "NLU model not found");
+    return Status(grpc::StatusCode::INTERNAL, "Tensorflow Serving prediction failed");
+  }
+  return status;
 }
 
 void nlu::setDebugMode(int debug_mode)
