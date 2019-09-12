@@ -15,7 +15,7 @@ void grpc_server::start(){
   builder.RegisterService(_service);
 
   std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
-  std::cout << "Server listening on " << server_address << std::endl;
+  std::cout << "[INFO]\t" << currentDateTime() <<"\tgRPC server listening on " << server_address << std::endl;
   server->Wait();
 }
 

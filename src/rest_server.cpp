@@ -20,7 +20,10 @@ void rest_server::init(size_t thr) {
 
 void rest_server::start() {
   httpEndpoint->setHandler(router.handler());
+
+  cout << "[INFO]\t" << currentDateTime() <<"\tREST server listening on 0.0.0.0:" << _num_port << endl;
   httpEndpoint->serve();
+
   httpEndpoint->shutdown();
 }
 
