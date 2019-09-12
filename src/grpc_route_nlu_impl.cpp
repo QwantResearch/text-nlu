@@ -102,19 +102,22 @@ void GrpcRouteNLUImpl::SetOutput(
     Tag *tag;
     for (int j = 0; j < tokenized.size(); j++) {
       std::string current_word = tokenized[j];
-      std::string bio = output_batch_tokens[i][j];
 
-      if (j == 0 || bio.find("B-") == 0 || (bio.find("O") == 0 && tag->tag().find("O") != 0)) { 
-        // either a "B-" or a "O" that doesn't follow another "O": we create a new tag
+      std::string current_bio = output_batch_tokens[i][j];
+      std::string current_tag = regex_replace(current_bio, regex("^(B-|I-)"), "");
+      // Not all NLU models are BIO, current_tag may equal current_bio
+
+      if (j == 0 || current_bio.find("B-") == 0 || (current_tag.compare(tag->tag()) != 0)) { 
+        // either a "B-" or a tag that follows a different tag: we create a new tag
         tag = response->add_tag();
         tag->set_phrase(current_word);
-        tag->set_tag(bio);
-      } else { // we have a "O" that follows another "O" or a "I": we append text to phrase
+        tag->set_tag(current_tag);
+      } else { // we have a tag that follows another same tag or a "I": we append text to phrase
         tag->set_phrase(tag->phrase() + " " + current_word);
       }
     }
   }
-}
+} 
 
 GrpcRouteNLUImpl::GrpcRouteNLUImpl(shared_ptr<nlu> nlu_ptr, int debug_mode) {
   _nlu = nlu_ptr;
