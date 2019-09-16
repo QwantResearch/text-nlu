@@ -4,6 +4,17 @@
 
 using namespace std;
 
+// Initialize ModelState const
+map<tensorflow::serving::ModelVersionStatus_State, std::string> nlu::mapState = {
+  {tensorflow::serving::ModelVersionStatus_State_UNKNOWN, "UNKNOWN"},
+  {tensorflow::serving::ModelVersionStatus_State_START, "START"},
+  {tensorflow::serving::ModelVersionStatus_State_LOADING, "LOADING"},
+  {tensorflow::serving::ModelVersionStatus_State_AVAILABLE, "AVAILABLE"},
+  {tensorflow::serving::ModelVersionStatus_State_UNLOADING, "UNLOADING"},
+  {tensorflow::serving::ModelVersionStatus_State_END, "END"}
+};
+
+
 bool nlu::getLocal()
 {
     return _local;
@@ -11,14 +22,45 @@ bool nlu::getLocal()
 
 nlu::nlu(int debug_mode, std::string model_config_path, std::string tfserving_host)
 {
-    std::string channel(tfserving_host);
-    _stub = PredictionService::NewStub(CreateChannel(channel, grpc::InsecureChannelCredentials()));
+    _channel = CreateChannel(tfserving_host, grpc::InsecureChannelCredentials());
+
+    _stub = PredictionService::NewStub(_channel);
     _local=true;
     _debug_mode=debug_mode;
     _model_config_path = model_config_path;
+
+    bool status = CheckModelsStatus();
     if (debug_mode){
-      std::cout << "NLU initialized successfully." << std::endl;
+      if (status)
+        cerr << "[DEBUG]\t" << currentDateTime() << "\tNLU initialized successfully." << endl;
+      else
+        cerr << "[ERROR]\t" << currentDateTime() << "\tSome models were not initialized successfully." << endl;
     }
+}
+
+bool nlu::CheckModelsStatus() {
+  unique_ptr<ModelService::Stub> model_stub = ModelService::NewStub(_channel);
+
+  for (auto& domain: getDomains()){
+    ClientContext context;
+    tensorflow::serving::GetModelStatusRequest request;
+    tensorflow::serving::GetModelStatusResponse response;
+
+    request.mutable_model_spec()->set_name(string(domain));
+    Status status = model_stub->GetModelStatus(&context, request, &response);
+
+    if (!status.ok()){
+      cerr << "[ERROR]\t" << currentDateTime() << "\tTensorflow serving failed to get status of " << domain << " model." << endl;
+      return false;
+    }
+    
+    // We currently support only one version per model, that's why we check only first model_version_status
+    if (_debug_mode){
+      tensorflow::serving::ModelVersionStatus_State state = response.model_version_status().at(0).state();
+      cerr << "[DEBUG]\t" << currentDateTime() << "\t" << domain << " model status: " << mapState[state] << endl;
+    } 
+  }
+  return true;
 }
 
 std::vector<std::string> nlu::getDomains(){
@@ -34,7 +76,7 @@ std::vector<std::string> nlu::getDomains(){
 
   int fileDescriptor = open(_model_config_path.c_str(), O_RDONLY);
   if( fileDescriptor < 0 ) {
-    std::cerr << " Error opening the file " << std::endl;
+    cerr << "[ERROR]\t" << currentDateTime() << "\tError opening the file " << std::endl;
     return domain_list;
   }
 
@@ -42,7 +84,7 @@ std::vector<std::string> nlu::getDomains(){
   fileInput.SetCloseOnDelete( true );
 
   if (!google::protobuf::TextFormat::Parse(&fileInput, server_config)) {
-    cerr << std::endl << "Failed to parse file!" << endl;
+    cerr << "[ERROR]\t" << currentDateTime() << "\tFailed to parse file!" << endl;
     return domain_list;
   }
 
@@ -108,7 +150,7 @@ void nlu::getBatchCharsListFromBatchTokens(
   }
 }
 
-bool nlu::NLUBatch(
+Status nlu::NLUBatch(
     std::vector<std::vector<std::string> >& batch_tokens,
     std::vector<std::vector<std::string> >& output_batch_tokens,
     std::string domain) {
@@ -151,7 +193,6 @@ bool nlu::NLUBatch(
   tokens_tensor.mutable_tensor_shape()->add_dim()->set_size(max_length);
 
   inputs["tokens"] = tokens_tensor;
-  std::cout << "Generate tokens_tensor ok." << std::endl;
 
   // PROTO: chars_tensor
   tensorflow::TensorProto chars_tensor;
@@ -170,7 +211,6 @@ bool nlu::NLUBatch(
   chars_tensor.mutable_tensor_shape()->add_dim()->set_size(max_length_word);
 
   inputs["chars"] = chars_tensor;
-  std::cout << "Generate chars_tensor ok." << std::endl;
 
   // PROTO: lengths_tensor
   tensorflow::TensorProto lengths_tensor;
@@ -182,15 +222,12 @@ bool nlu::NLUBatch(
   lengths_tensor.mutable_tensor_shape()->add_dim()->set_size(batch_size);
 
   inputs["length"] = lengths_tensor;
-  std::cout << "Generate lengths_tensor ok." << std::endl;
 
   // The actual RPC.
   Status status = _stub->Predict(&context, request, &response);
   
   // Act upon its status.
   if (status.ok()) {
-    std::cout << "call predict ok" << std::endl;
-    std::cout << "outputs size is " << response.outputs_size() << std::endl;
 
     OutMap& map_outputs = *response.mutable_outputs();
     OutMap::iterator iter;
@@ -211,20 +248,20 @@ bool nlu::NLUBatch(
           output_batch_tokens.push_back(output_tokens);
           current_index++;
         }
-      } else {
-        std::cout << "other section: " << section << std::endl;
       }
       ++output_index;
     }
    
   } else {
-    // TODO: Deal with model not found
-    std::cout << "gRPC call return code: " << status.error_code() << ": "
-              << status.error_message() << std::endl;
-    return "RPC failed";
-  }
+    cerr << "[ERROR]\t" << currentDateTime() << "\tError: gRPC call return code: " 
+         << status.error_code() << ": "
+         << status.error_message() << std::endl;
 
-  return true;
+    if (status.error_code() == grpc::StatusCode::NOT_FOUND)
+      return Status(grpc::StatusCode::NOT_FOUND, "NLU model not found");
+    return Status(grpc::StatusCode::INTERNAL, "Tensorflow Serving prediction failed");
+  }
+  return status;
 }
 
 void nlu::setDebugMode(int debug_mode)

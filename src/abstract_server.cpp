@@ -10,5 +10,4 @@ AbstractServer::AbstractServer(std::string& model_config_path, std::string& tfse
   _tfserving_host = tfserving_host;
 
   _nlu = make_shared<nlu>(_debug_mode, _model_config_path, _tfserving_host);
-  // TODO: Test if NLU started correctly
 }

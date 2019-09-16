@@ -13,6 +13,8 @@ services:
       API_NLU_CONFIG: /models/models.config
       API_NLU_GRPC: 0
       API_NLU_DEBUG: 1
+    depends_on:
+      - "tensorflow_serving"
 
   tensorflow_serving:
     image: "tensorflow/serving:latest"
