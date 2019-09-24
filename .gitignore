@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+# IDE
+.vscode/*
+
+# CMake
+build/*
+
+# Compiled proto files
+compiled/*
