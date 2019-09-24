@@ -2,7 +2,7 @@ Text NLU
 =========
 
 A new C++ API for NLU at Qwant Research.
-The API is based on [`fasttext`](https://fasttext.cc/) and Tensorflow.
+The API is based on Tensorflow.
 
 ## Installation
 ```
