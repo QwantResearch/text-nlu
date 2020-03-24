@@ -56,7 +56,7 @@ COPY . /opt/text-nlu
 
 WORKDIR /opt/text-nlu
 
-RUN bash ./install_grpc.sh
+# RUN bash ./install_grpc.sh
 
 # Build && install GRPC
 WORKDIR /opt/text-nlu/vendor/grpc
@@ -83,7 +83,7 @@ RUN cmake -DCMAKE_BUILD_TYPE="Release" . \
     && make install
 
 WORKDIR /opt/text-nlu/vendor/qnlp-toolkit
-RUN bash install.sh
+# RUN bash install.sh
 
 # RUN bash ./install.sh
 WORKDIR /opt/text-nlu
