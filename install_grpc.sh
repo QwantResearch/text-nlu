@@ -17,8 +17,8 @@ pushd vendor/grpc
 
     # Install c-ares
     pushd third_party/cares/cares
-        git fetch origin
-        git checkout cares-1_15_0
+        # git fetch origin
+        # git checkout cares-1_15_0
         mkdir -p cmake/build
         pushd cmake/build
             cmake -DCMAKE_BUILD_TYPE=Release ../..
