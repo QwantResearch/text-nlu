@@ -2,8 +2,6 @@
 # Copyright 2019 Qwant Research. Licensed under the terms of the Apache 2.0
 # license. See LICENSE in the project root.
 set -ueo pipefail
-set -x
-
 
 export PREFIX=/usr/local/
 
@@ -17,8 +15,6 @@ pushd vendor/grpc
 
     # Install c-ares
     pushd third_party/cares/cares
-        # git fetch origin
-        # git checkout cares-1_15_0
         mkdir -p cmake/build
         pushd cmake/build
             cmake -DCMAKE_BUILD_TYPE=Release ../..
