@@ -78,10 +78,11 @@ void rest_server::doNLUPost(const Rest::Request &request,
   int count;
   float threshold;
   bool debugmode;
+  bool batchmode;
   string domain;
   string lang;  
   try {
-    rest_server::fetchParamWithDefault(j, domain, lang, count, threshold, debugmode);
+    rest_server::fetchParamWithDefault(j, domain, lang, count, threshold, debugmode,batchmode);
   } catch (std::runtime_error e) {
     response.headers().add<Http::Header::ContentType>(MIME(Application, Json));
     response.send(Http::Code::Bad_Request, e.what());
@@ -93,7 +94,7 @@ void rest_server::doNLUPost(const Rest::Request &request,
     string tokenized;
     if (_debug_mode != 0)
       cerr << "[DEBUG]\t" << currentDateTime() << "\t" << "ASK NLU:\t" << j << endl;
-    Status status = askNLU(text, tokenized, j, domain, lang, debugmode);
+    Status status = askNLU(text, tokenized, j, domain, lang, debugmode,batchmode);
     if (!status.ok()){
       response.headers().add<Http::Header::ContentType>(MIME(Application, Json));
       response.send(Http::Code::Internal_Server_Error, std::string(status.error_message()));
@@ -123,11 +124,12 @@ void rest_server::doNLUBatchPost(const Rest::Request &request,
   int count;
   float threshold;
   bool debugmode;
+  bool batchmode;
   string domain;
   string lang;
   
   try {
-    rest_server::fetchParamWithDefault(j, domain, lang, count, threshold, debugmode);
+    rest_server::fetchParamWithDefault(j, domain, lang, count, threshold, debugmode,batchmode);
   } catch (std::runtime_error e) {
     response.headers().add<Http::Header::ContentType>(MIME(Application, Json));
     response.send(Http::Code::Bad_Request, e.what());
@@ -140,7 +142,7 @@ void rest_server::doNLUBatchPost(const Rest::Request &request,
         string tokenized;
         if (_debug_mode != 0)
           cerr << "[DEBUG]\t" << currentDateTime() << "\tASK NLU:\t" << it << endl;
-        Status status = askNLU(text, tokenized, it, domain, lang, debugmode);
+        Status status = askNLU(text, tokenized, it, domain, lang, debugmode,batchmode);
         if (!status.ok()){
           response.headers().add<Http::Header::ContentType>(MIME(Application, Json));
           response.send(Http::Code::Internal_Server_Error, std::string(status.error_message()));
@@ -173,10 +175,12 @@ void rest_server::fetchParamWithDefault(const nlohmann::json& j,
                             string& domain, string& lang, 
                             int& count,
                             float& threshold,
-                            bool& debugmode){
+                            bool& debugmode,
+                            bool& batch){
   count = 10;
   threshold = 0.0;
   debugmode = false;
+  batch = false;
 
   if (j.find("count") != j.end()) {
     count = j["count"];
@@ -192,6 +196,9 @@ void rest_server::fetchParamWithDefault(const nlohmann::json& j,
   if (j.find("debug") != j.end()) {
     debugmode = j["debug"];
   }
+  if (j.find("batch") != j.end()) {
+    batch = j["batch"];
+  }
   if (j.find("domain") != j.end()) {
     domain = j["domain"];
   } else {
@@ -199,7 +206,7 @@ void rest_server::fetchParamWithDefault(const nlohmann::json& j,
   }
 }
 
-Status rest_server::askNLU(std::string &text, std::string &tokenized_text, json &output, string &domain, string &lang, bool debugmode)
+Status rest_server::askNLU(std::string &text, std::string &tokenized_text, json &output, string &domain, string &lang, bool debugmode, bool batchmode)
 {
     tokenized_text = _nlu->tokenize_str(text, lang);
     std::vector<std::string> tokenized_vec = _nlu->tokenize(text, lang);
@@ -209,17 +216,18 @@ Status rest_server::askNLU(std::string &text, std::string &tokenized_text, json 
     for (int l_inc=0; l_inc < (int)tokenized_vec.size(); l_inc++)
     {
         tokenized_vec_tmp.push_back(tokenized_vec[l_inc]);
-        if (l_inc == (int)tokenized_vec.size()-1 || ((int)tokenized_vec[l_inc].size() == 1 && (tokenized_vec[l_inc].compare(".")==0 || tokenized_vec[l_inc].compare("\n")==0)))
+        if (batchmode && (l_inc == (int)tokenized_vec.size()-1 || ((int)tokenized_vec[l_inc].size() == 1 && (tokenized_vec[l_inc].compare(".")==0 || tokenized_vec[l_inc].compare("\n")==0))))
         {
             tokenized_batched.push_back(tokenized_vec_tmp);
             tokenized_vec_tmp.clear();
         }
     }
-    if (_debug_mode != 0 ) cerr << "LOG: "<< currentDateTime() << "\t" << "BATCH SIZE:\t" << (int)tokenized_batched.size() << endl;
     if ((int)tokenized_vec_tmp.size() > 0)
     {
         tokenized_batched.push_back(tokenized_vec_tmp);
     }    
+//     if (_debug_mode != 0 ) cerr << "LOG: "<< currentDateTime() << "\t" << "BATCH SIZE:\t" << (int)tokenized_batched.size() << endl;
+    if (_debug_mode != 0 ) cerr << "LOG: "<< currentDateTime() << "\t" << "BATCH CONTENT:\t" << printBatch(tokenized_batched) << endl;
     return askNLU(tokenized_batched, output, domain, lang, debugmode);
 }
 
@@ -227,6 +235,7 @@ Status rest_server::askNLU(vector<vector<string> > &input, json &output, string 
 {
     vector<vector<string> > result_batched ;
     Status status = _nlu->NLUBatch(input,result_batched, domain);
+    if (_debug_mode != 0 ) cerr << "LOG: "<< currentDateTime() << "\t" << "BATCH OUTPUT:\t" << printBatch(result_batched) << endl;
     if (!status.ok()){
       return status;
     }
@@ -298,4 +307,23 @@ void rest_server::doAuth(const Rest::Request &request,
 
 void rest_server::shutdown() {
   httpEndpoint->shutdown(); 
+}
+
+std::string rest_server::printBatch(vector<vector<std::string> > &batchVector)
+{
+    stringstream to_return;
+    
+    to_return << "BATCH SIZE: "<<(int)batchVector.size() <<endl;
+    for (int l_inc = 0; l_inc < (int)batchVector.size() ; l_inc++)
+    {
+        to_return << "\tBATCH " << l_inc << "\t[";
+        for (int l_inc_sec = 0; l_inc_sec < (int)batchVector[l_inc].size() ; l_inc_sec++)
+        {
+            if (l_inc_sec > 0)
+                to_return << ", ";
+            to_return << "\""<< batchVector[l_inc][l_inc_sec] <<"\"";
+        }
+        to_return << "]" << endl;
+    }
+    return to_return.str();
 }

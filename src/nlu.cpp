@@ -150,7 +150,32 @@ void nlu::getBatchCharsListFromBatchTokens(
   }
 }
 
+
 Status nlu::NLUBatch(
+    std::vector<std::vector<std::string> >& batch_tokens,
+    std::vector<std::vector<std::string> >& output_batch_tokens,
+    std::string domain) {
+    std::vector<std::vector<std::string> > to_process;
+    auto tokens=batch_tokens.begin();
+    Status status;
+    while (tokens!=batch_tokens.end())
+    {
+        to_process.push_back((*tokens));
+        status=NLUDecode(to_process,output_batch_tokens,domain);
+        if (status.ok())
+        {
+            to_process.clear();
+            tokens++;
+        }
+        else
+        {
+            break;
+        }
+    }
+    return status;
+}
+
+Status nlu::NLUDecode(
     std::vector<std::vector<std::string> >& batch_tokens,
     std::vector<std::vector<std::string> >& output_batch_tokens,
     std::string domain) {

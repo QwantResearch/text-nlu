@@ -55,9 +55,11 @@ private:
                               string& lang, 
                               int& count,
                               float& threshold,
-                              bool& debugmode);
-  Status askNLU(std::string &text, std::string &tokenized, json &output, string &domain, string &lang, bool debugmode);
+                              bool& debugmode,
+                              bool& batch);
+  Status askNLU(std::string &text, std::string &tokenized, json &output, string &domain, string &lang, bool debugmode, bool batchmode);
   Status askNLU(vector<vector<string> > &input, json &output, string &domain, string &lang, bool debugmode);
+  std::string printBatch(vector<vector<std::string> > &batchVector);
 
   void writeLog(string text_to_log) {}
 

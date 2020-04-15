@@ -79,6 +79,10 @@ class nlu
           std::vector<std::vector<std::string> >& batch_tokens,
           std::vector<std::vector<std::string> >& output_batch_tokens,
           std::string domain);
+        Status NLUDecode(
+          std::vector<std::vector<std::string> >& batch_tokens,
+          std::vector<std::vector<std::string> >& output_batch_tokens,
+          std::string domain);
         bool CheckModelsStatus();
     private:
       static map<tensorflow::serving::ModelVersionStatus_State, std::string> mapState;
