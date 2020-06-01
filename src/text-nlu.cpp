@@ -16,7 +16,7 @@ int debug = 0;
 std::string model_config_path("");
 int server_type = 0; // 0 -> REST, 1 -> GRPC
 std::string tfserving_host("");
-bool set_envvar[6]={0,0,0,0,0,0};
+bool set_envvar[6] = {0,0,0,0,0,0};
 
 void usage() {
   cout << "./text-nlu [--threads <nthreads>] [--port <port>] [--grpc] "
@@ -29,10 +29,9 @@ void usage() {
           "\t--tfserving_host (-s)    TFServing host (needed)\n"
           "\t--help (-h)              Show this message\n"
        << endl;
-  exit(1);
 }
 
-void ProcessArgs(int argc, char **argv) {
+bool ProcessArgs(int argc, char **argv) {
   const char *const short_opts = "p:t:c:s:dhg";
   const option long_opts[] = {
       {"port", 1, nullptr, 'p'},
@@ -103,15 +102,16 @@ void ProcessArgs(int argc, char **argv) {
     case '?': // Unrecognized option
     default:
       usage();
-      break;
+      return false;
     }
   }
   if (model_config_path == "" || tfserving_host == "") {
     cerr << "[ERROR]\t" << currentDateTime() << "\tError, you must set a model_config_path "
          << "and a tfserving_host" << endl;
     usage();
-    exit(1);
+    return false;
   }
+  return true;
 }
 
 int main(int argc, char **argv) {
@@ -152,7 +152,9 @@ int main(int argc, char **argv) {
       cout << "[INFO]\t" << currentDateTime() << "\tSetting the TFServing host value to "<< tfserving_host <<", given by environment variable." << endl;
   }
 
-  ProcessArgs(argc, argv);
+  if (!ProcessArgs(argc, argv)) {
+    return 1;
+  }
 
   cout << "[INFO]\t" << currentDateTime() << "\tCores = " << hardware_concurrency() << endl;
   cout << "[INFO]\t" << currentDateTime() << "\tUsing " << threads << " threads" << endl;

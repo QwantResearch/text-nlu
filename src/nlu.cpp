@@ -15,33 +15,29 @@ map<tensorflow::serving::ModelVersionStatus_State, std::string> nlu::mapState = 
 };
 
 
-bool nlu::getLocal()
-{
-    return _local;
+bool nlu::getLocal() {
+  return _local;
 }
 
-nlu::nlu(int debug_mode, std::string model_config_path, std::string tfserving_host)
-{
-    _channel = CreateChannel(tfserving_host, grpc::InsecureChannelCredentials());
-
-    _stub = PredictionService::NewStub(_channel);
-    _local=true;
-    _debug_mode=debug_mode;
-    _model_config_path = model_config_path;
-
+nlu::nlu(int debug_mode, std::string model_config_path, std::string tfserving_host) {
+  _channel = CreateChannel(tfserving_host, grpc::InsecureChannelCredentials());
+  _stub = PredictionService::NewStub(_channel);
+  _local=true;
+  _debug_mode=debug_mode;
+  _model_config_path = model_config_path;
+  if (debug_mode) {
     bool status = CheckModelsStatus();
-    if (debug_mode){
-      if (status)
-        cerr << "[DEBUG]\t" << currentDateTime() << "\tNLU initialized successfully." << endl;
-      else
-        cerr << "[ERROR]\t" << currentDateTime() << "\tSome models were not initialized successfully." << endl;
-    }
+    if (status)
+      cerr << "[DEBUG]\t" << currentDateTime() << "\tNLU initialized successfully." << endl;
+    else
+      cerr << "[ERROR]\t" << currentDateTime() << "\tSome models were not initialized successfully." << endl;
+  }
 }
 
 bool nlu::CheckModelsStatus() {
   unique_ptr<ModelService::Stub> model_stub = ModelService::NewStub(_channel);
 
-  for (auto& domain: getDomains()){
+  for (auto& domain: getDomains()) {
     ClientContext context;
     tensorflow::serving::GetModelStatusRequest request;
     tensorflow::serving::GetModelStatusResponse response;
@@ -49,7 +45,7 @@ bool nlu::CheckModelsStatus() {
     request.mutable_model_spec()->set_name(string(domain));
     Status status = model_stub->GetModelStatus(&context, request, &response);
 
-    if (!status.ok()){
+    if (!status.ok()) {
       cerr << "[ERROR]\t" << currentDateTime() << "\tTensorflow serving failed to get status of " << domain << " model." << endl;
       return false;
     }
@@ -58,12 +54,12 @@ bool nlu::CheckModelsStatus() {
     if (_debug_mode){
       tensorflow::serving::ModelVersionStatus_State state = response.model_version_status().at(0).state();
       cerr << "[DEBUG]\t" << currentDateTime() << "\t" << domain << " model status: " << mapState[state] << endl;
-    } 
+    }
   }
   return true;
 }
 
-std::vector<std::string> nlu::getDomains(){
+std::vector<std::string> nlu::getDomains() {
   // We can't get the list of models from tfserving. 
   // See: https://github.com/tensorflow/serving/pull/797
   // Instead we read it directly from models.config.
@@ -75,7 +71,7 @@ std::vector<std::string> nlu::getDomains(){
   tensorflow::serving::ModelServerConfig *server_config = new tensorflow::serving::ModelServerConfig();
 
   int fileDescriptor = open(_model_config_path.c_str(), O_RDONLY);
-  if( fileDescriptor < 0 ) {
+  if (fileDescriptor < 0) {
     cerr << "[ERROR]\t" << currentDateTime() << "\tError opening the file " << std::endl;
     return domain_list;
   }
@@ -97,8 +93,7 @@ std::vector<std::string> nlu::getDomains(){
   return domain_list;
 }
 
-std::vector<int> nlu::PadBatch(
-    std::vector<std::vector<std::string> >& batch_tokens) {
+std::vector<int> nlu::PadBatch(std::vector<std::vector<std::string> >& batch_tokens) {
   std::vector<int> lengths;
   size_t max_length = 0;
 
@@ -128,8 +123,9 @@ int nlu::getMaxLengthWord(std::vector<std::vector<std::string>>& batch_tokens) {
 
 void nlu::getBatchCharsListFromBatchTokens(
   std::vector<std::vector<std::vector<std::string>>>& batch_chars_list,
-  std::vector<std::vector<std::string>>& batch_tokens, 
-  int max_length_word){
+  std::vector<std::vector<std::string>>& batch_tokens,
+  int max_length_word
+) {
   // We construct batch_chars_list from batch_tokens
   // by pushing tokens chars by chars and padding to max_length_word.
 
@@ -152,34 +148,32 @@ void nlu::getBatchCharsListFromBatchTokens(
 
 
 Status nlu::NLUBatch(
-    std::vector<std::vector<std::string> >& batch_tokens,
-    std::vector<std::vector<std::string> >& output_batch_tokens,
-    std::string domain) {
-    std::vector<std::vector<std::string> > to_process;
-    auto tokens=batch_tokens.begin();
-    Status status;
-    while (tokens!=batch_tokens.end())
-    {
-        to_process.push_back((*tokens));
-        status=NLUDecode(to_process,output_batch_tokens,domain);
-        if (status.ok())
-        {
-            to_process.clear();
-            tokens++;
-        }
-        else
-        {
-            break;
-        }
+  std::vector<std::vector<std::string> >& batch_tokens,
+  std::vector<std::vector<std::string> >& output_batch_tokens,
+  std::string domain
+) {
+  std::vector<std::vector<std::string> > to_process;
+  auto tokens = batch_tokens.begin();
+  Status status;
+
+  while (tokens!=batch_tokens.end()) {
+    to_process.push_back((*tokens));
+    status = NLUDecode(to_process, output_batch_tokens, domain);
+    if (status.ok()) {
+      to_process.clear();
+      tokens++;
+    } else {
+      break;
     }
-    return status;
+  }
+  return status;
 }
 
 Status nlu::NLUDecode(
-    std::vector<std::vector<std::string> >& batch_tokens,
-    std::vector<std::vector<std::string> >& output_batch_tokens,
-    std::string domain) {
-
+  std::vector<std::vector<std::string> >& batch_tokens,
+  std::vector<std::vector<std::string> >& output_batch_tokens,
+  std::string domain
+) {
   // Pad batch.
   std::vector<int> lengths = PadBatch(batch_tokens);
 
@@ -205,14 +199,13 @@ Status nlu::NLUDecode(
   google::protobuf::Map<std::string, tensorflow::TensorProto>& inputs =
     *request.mutable_inputs();
 
-
   // PROTO: tokens_tensor
   tensorflow::TensorProto tokens_tensor;
   tokens_tensor.set_dtype(tensorflow::DataType::DT_STRING);
   for (int i = 0; i < batch_size; i++) {
-      for (int j = 0; j < max_length; j++) {
-          tokens_tensor.add_string_val(batch_tokens[i][j]);  
-      }  
+    for (int j = 0; j < max_length; j++) {
+      tokens_tensor.add_string_val(batch_tokens[i][j]);
+    }
   }
   tokens_tensor.mutable_tensor_shape()->add_dim()->set_size(batch_size);
   tokens_tensor.mutable_tensor_shape()->add_dim()->set_size(max_length);
@@ -224,11 +217,11 @@ Status nlu::NLUDecode(
   chars_tensor.set_dtype(tensorflow::DataType::DT_STRING);
 
   for (int i = 0; i < batch_size; i++) {
-      for (int j = 0; j < max_length; j++) { 
-          for (int k = 0; k < max_length_word; k++) {
-            chars_tensor.add_string_val(batch_chars_list[i][j][k]);
-          }
+    for (int j = 0; j < max_length; j++) {
+      for (int k = 0; k < max_length_word; k++) {
+        chars_tensor.add_string_val(batch_chars_list[i][j][k]);
       }
+    }
   }
 
   chars_tensor.mutable_tensor_shape()->add_dim()->set_size(batch_size);
@@ -250,10 +243,9 @@ Status nlu::NLUDecode(
 
   // The actual RPC.
   Status status = _stub->Predict(&context, request, &response);
-  
+
   // Act upon its status.
   if (status.ok()) {
-
     OutMap& map_outputs = *response.mutable_outputs();
     OutMap::iterator iter;
     int output_index = 0;
@@ -264,9 +256,9 @@ Status nlu::NLUDecode(
 
       int current_index = 0;
       if ("tags" == section) {
-        for (int it=0; it < batch_size; it++){
+        for (int it=0; it < batch_size; it++) {
           std::vector<std::string> output_tokens;
-          for (int l=0; l < lengths[it]; l++){ //TODO: maybe use the "lenghts" value returned instead
+          for (int l=0; l < lengths[it]; l++) { //TODO: maybe use the "lenghts" value returned instead
             output_tokens.push_back(result_tensor_proto.string_val(current_index));
             current_index++;
           }
@@ -276,7 +268,6 @@ Status nlu::NLUDecode(
       }
       ++output_index;
     }
-   
   } else {
     cerr << "[ERROR]\t" << currentDateTime() << "\tError: gRPC call return code: " 
          << status.error_code() << ": "
@@ -289,23 +280,20 @@ Status nlu::NLUDecode(
   return status;
 }
 
-void nlu::setDebugMode(int debug_mode)
-{
-    _debug_mode=debug_mode;
+void nlu::setDebugMode(int debug_mode) {
+  _debug_mode = debug_mode;
 }
 
-std::vector <std::string> nlu::tokenize(std::string &input, std::string lang)
-{
-	tokenizer * tokenizer_tmp = new tokenizer(lang,false);
-	std::vector <std::string> to_return = tokenizer_tmp->tokenize(input);
-	delete(tokenizer_tmp);
-	return to_return;
+std::vector <std::string> nlu::tokenize(std::string &input, std::string lang) {
+  tokenizer * tokenizer_tmp = new tokenizer(lang,false);
+  std::vector <std::string> to_return = tokenizer_tmp->tokenize(input);
+  delete tokenizer_tmp;
+  return to_return;
 }
 
-std::string nlu::tokenize_str(std::string &input, std::string lang)
-{
-	tokenizer * tokenizer_tmp = new tokenizer(lang,false);
-	std::string to_return = tokenizer_tmp->tokenize_str(input);
-	delete(tokenizer_tmp);
-	return to_return;
+std::string nlu::tokenize_str(std::string &input, std::string lang) {
+  tokenizer * tokenizer_tmp = new tokenizer(lang,false);
+  std::string to_return = tokenizer_tmp->tokenize_str(input);
+  delete tokenizer_tmp;
+  return to_return;
 }
