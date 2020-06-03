@@ -27,7 +27,7 @@ const std::string currentDateTime() {
 }
 
 namespace Generic {
-void handleReady(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
-  response.send(Pistache::Http::Code::Ok, "1");
-}
+  void handleReady(const Pistache::Rest::Request &req, Pistache::Http::ResponseWriter response) {
+    response.send(Pistache::Http::Code::Ok, "1");
+  }
 } // namespace Generic

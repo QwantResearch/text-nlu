@@ -3,7 +3,7 @@
 
 #include "grpc_server.h"
 
-void grpc_server::init(size_t thr){ //TODO: Check how to use thread number in grpc
+void grpc_server::init(size_t thr) { //TODO: Check how to use thread number in grpc
   _service = new GrpcRouteNLUImpl(_nlu, _debug_mode);
 }
 
@@ -22,4 +22,3 @@ void grpc_server::start(){
 void grpc_server::shutdown(){
   // TODO: /!\ can't shutdown from same thread
 }
-
