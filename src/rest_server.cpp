@@ -77,9 +77,10 @@ void rest_server::doNLUPost(const Rest::Request &request, Http::ResponseWriter r
   float threshold;
   bool debugmode;
   bool batchmode;
+  bool detokenization;
   string domain;
   string lang;
-  auto err = rest_server::fetchParamWithDefault(j, domain, lang, count, threshold, debugmode,batchmode);
+  auto err = rest_server::fetchParamWithDefault(j, domain, lang, count, threshold, debugmode,batchmode, detokenization);
   if (err != NULL) {
     response.headers().add<Http::Header::ContentType>(MIME(Application, Json));
     response.send(Http::Code::Bad_Request, err);
@@ -120,10 +121,11 @@ void rest_server::doNLUBatchPost(const Rest::Request &request, Http::ResponseWri
   float threshold;
   bool debugmode;
   bool batchmode;
+  bool detokenization;
   string domain;
   string lang;
 
-  auto err = rest_server::fetchParamWithDefault(j, domain, lang, count, threshold, debugmode,batchmode);
+  auto err = rest_server::fetchParamWithDefault(j, domain, lang, count, threshold, debugmode,batchmode, detokenization);
   if (err != NULL) {
     response.headers().add<Http::Header::ContentType>(MIME(Application, Json));
     response.send(Http::Code::Bad_Request, err);
@@ -169,7 +171,8 @@ const char *rest_server::fetchParamWithDefault(
   int& count,
   float& threshold,
   bool& debugmode,
-  bool& batch
+  bool& batch,
+  bool& detok
 ) {
   count = 10;
   threshold = 0.0;
@@ -189,6 +192,9 @@ const char *rest_server::fetchParamWithDefault(
   }
   if (j.find("debug") != j.end()) {
     debugmode = j["debug"];
+  }
+  if (j.find("detok") != j.end()) {
+    debugmode = j["detok"];
   }
   if (j.find("batch") != j.end()) {
     batch = j["batch"];
@@ -210,7 +216,7 @@ Status rest_server::askNLU(
   bool debugmode,
   bool batchmode
 ) {
-  tokenized_text = _nlu->tokenize_str(text, lang);
+  tokenized = _nlu->tokenize_str(text, lang);
   std::vector<std::string> tokenized_vec = _nlu->tokenize(text, lang);
 
   vector<vector<string> > tokenized_batched;

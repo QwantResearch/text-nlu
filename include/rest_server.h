@@ -56,7 +56,8 @@ private:
                                     int& count,
                                     float& threshold,
                                     bool& debugmode,
-                                    bool& batch);
+                                    bool& batch,
+                                    bool& detok);
   Status askNLU(std::string &text,
                 std::string &tokenized,
                 json &output,
