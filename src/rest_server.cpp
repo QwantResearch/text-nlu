@@ -91,7 +91,7 @@ void rest_server::doNLUPost(const Rest::Request &request, Http::ResponseWriter r
     string tokenized;
     if (_debug_mode != 0)
       cerr << "[DEBUG]\t" << currentDateTime() << "\t" << "ASK NLU:\t" << j << endl;
-    Status status = askNLU(text, tokenized, j, domain, lang, debugmode,batchmode);
+    Status status = askNLU(text, tokenized, j, domain, lang, debugmode,batchmode, detokenization);
     if (!status.ok()) {
       response.headers().add<Http::Header::ContentType>(MIME(Application, Json));
       response.send(Http::Code::Internal_Server_Error, std::string(status.error_message()));
@@ -138,7 +138,7 @@ void rest_server::doNLUBatchPost(const Rest::Request &request, Http::ResponseWri
         string tokenized;
         if (_debug_mode != 0)
           cerr << "[DEBUG]\t" << currentDateTime() << "\tASK NLU:\t" << it << endl;
-        Status status = askNLU(text, tokenized, it, domain, lang, debugmode,batchmode);
+        Status status = askNLU(text, tokenized, it, domain, lang, debugmode,batchmode, detokenization);
         if (!status.ok()) {
           response.headers().add<Http::Header::ContentType>(MIME(Application, Json));
           response.send(Http::Code::Internal_Server_Error, std::string(status.error_message()));
@@ -178,6 +178,7 @@ const char *rest_server::fetchParamWithDefault(
   threshold = 0.0;
   debugmode = false;
   batch = false;
+  detok = false;
 
   if (j.find("count") != j.end()) {
     count = j["count"];
@@ -214,9 +215,10 @@ Status rest_server::askNLU(
   string &domain,
   string &lang,
   bool debugmode,
-  bool batchmode
+  bool batchmode,
+  bool detokenization
 ) {
-  tokenized = _nlu->tokenize_str(text, lang);
+  tokenized_text = _nlu->tokenize_str(text, lang);
   std::vector<std::string> tokenized_vec = _nlu->tokenize(text, lang);
 
   vector<vector<string> > tokenized_batched;
@@ -235,7 +237,7 @@ Status rest_server::askNLU(
 //     if (_debug_mode != 0 ) cerr << "LOG: "<< currentDateTime() << "\t" << "BATCH SIZE:\t" << (int)tokenized_batched.size() << endl;
   if (_debug_mode != 0)
     cerr << "LOG: "<< currentDateTime() << "\t" << "BATCH CONTENT:\t" << printBatch(tokenized_batched) << endl;
-  return askNLU(tokenized_batched, output, domain, lang, debugmode);
+  return askNLU(tokenized_batched, output, domain, lang, debugmode, detokenization);
 }
 
 Status rest_server::askNLU(
@@ -243,7 +245,8 @@ Status rest_server::askNLU(
   json &output,
   string &domain,
   string &lang,
-  bool debugmode
+  bool debugmode,
+  bool detokenization
 ) {
   vector<vector<string> > result_batched ;
   Status status = _nlu->NLUBatch(input,result_batched, domain);

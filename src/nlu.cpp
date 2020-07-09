@@ -297,3 +297,31 @@ std::string nlu::tokenize_str(std::string &input, std::string lang) {
   delete tokenizer_tmp;
   return to_return;
 }
+
+std::string nlu::detokenize_str(std::string &input) {
+  int l_inc=0;
+  std::string to_return;
+  while (l_inc < (int)input.size())
+  {
+    if (l_inc < (int)input.size()-1)
+    {
+        if ((int)to_return.size() > 0)
+        {
+            if (to_return[(int)to_return.size()-1] == ' ' && input[l_inc] == '\'')
+            {
+                to_return = to_return.substr(0,(int)to_return.size()-1);
+            }
+            if (to_return[(int)to_return.size()-1] == '\'' && input[l_inc] == ' ') l_inc++;
+        }
+        if (input[l_inc] == ' ' && input[l_inc+1] == '\'') l_inc++;
+        if (input[l_inc] == '\'' && input[l_inc+1] == ' ') l_inc++;
+    }
+    to_return = to_return + input[l_inc];
+    l_inc++;
+  }
+  if (to_return[(int)to_return.size()-1] == ' ')
+  {
+    to_return = to_return.substr(0,(int)to_return.size()-1);
+  }
+  return to_return;
+}

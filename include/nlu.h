@@ -74,7 +74,7 @@ class nlu
         void setDebugMode(int debug_mode);
         std::vector <std::string> tokenize(std::string &input, std::string lang);
         std::string tokenize_str(std::string &input, std::string lang);
-
+        std::string detokenize_str(std::string &input);
         Status NLUBatch(
           std::vector<std::vector<std::string> >& batch_tokens,
           std::vector<std::vector<std::string> >& output_batch_tokens,

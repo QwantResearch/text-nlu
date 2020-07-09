@@ -64,12 +64,14 @@ private:
                 string &domain,
                 string &lang,
                 bool debugmode,
-                bool batchmode);
+                bool batchmode,
+                bool detokenization);
   Status askNLU(vector<vector<string> > &input,
                 json &output,
                 string &domain,
                 string &lang,
-                bool debugmode);
+                bool debugmode,
+                bool detokenization);
   std::string printBatch(vector<vector<std::string> > &batchVector);
 
   void writeLog(string text_to_log) {}
