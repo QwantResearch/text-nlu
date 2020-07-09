@@ -314,7 +314,7 @@ std::string nlu::detokenize_str(std::string &input) {
             if (to_return[(int)to_return.size()-1] == '\'' && input[l_inc] == ' ') l_inc++;
         }
         if (input[l_inc] == ' ' && input[l_inc+1] == '\'') l_inc++;
-        if (input[l_inc] == '\'' && input[l_inc+1] == ' ') l_inc++;
+//         if (input[l_inc] == '\'' && input[l_inc+1] == ' ') l_inc++;
     }
     to_return = to_return + input[l_inc];
     l_inc++;

@@ -195,7 +195,7 @@ const char *rest_server::fetchParamWithDefault(
     debugmode = j["debug"];
   }
   if (j.find("detok") != j.end()) {
-    debugmode = j["detok"];
+    detok = j["detok"];
   }
   if (j.find("batch") != j.end()) {
     batch = j["batch"];
@@ -280,6 +280,7 @@ Status rest_server::askNLU(
       i_tmp.push_back(j_tmp);
 
       if ((int)prev_tag.length() > 0 && (prev_tag.compare(curr_tag) != 0 || begin_tag)) {
+          if (detokenization) word_concat = _nlu->detokenize_str(word_concat);
           t_tmp.push_back(nlohmann::json::object_t::value_type(string("phrase"), word_concat ));
           t_tmp.push_back(nlohmann::json::object_t::value_type(string("tag"), prev_tag ));
           json j_value({});
@@ -296,6 +297,7 @@ Status rest_server::askNLU(
     }
   }
   if ((int)word_concat.length() > 0) {
+    if (detokenization) word_concat = _nlu->detokenize_str(word_concat);
     t_tmp.push_back(nlohmann::json::object_t::value_type(string("phrase"), word_concat ));
     t_tmp.push_back(nlohmann::json::object_t::value_type(string("tag"), prev_tag ));
     json j_value({});
