@@ -18,6 +18,7 @@ public:
 
   std::vector<std::string> tokenize(std::string &input);
   std::string tokenize_str(std::string &input);
+  std::string detokenize_str(std::string &input);
 
 private:
   std::string _lang;
