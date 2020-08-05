@@ -11,14 +11,14 @@ export CMAKE_PREFIX_PATH=$PREFIX
 
 echo "Installing dependencies"
 
-pushd vendor/qnlp-toolkit
+pushd third_party/qnlp-toolkit
 	rm -rf build
 	bash install.sh $PREFIX
 popd
  
 for dep in pistache json
 do
-pushd vendor/$dep
+pushd third_party/$dep
 	rm -rf build
 	mkdir -p build
 	pushd build

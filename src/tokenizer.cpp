@@ -29,3 +29,6 @@ std::vector<std::string> tokenizer::tokenize(std::string &input) {
 std::string tokenizer::tokenize_str(std::string &input) {
   return _tokenizer->tokenize_sentence_to_string(input);
 }
+std::string tokenizer::detokenize_str(std::string &input) {
+  return _tokenizer->detokenize_sentence_to_string(input);
+}
