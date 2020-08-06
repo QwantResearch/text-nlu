@@ -284,24 +284,36 @@ void nlu::setDebugMode(int debug_mode) {
   _debug_mode = debug_mode;
 }
 
-std::vector <std::string> nlu::tokenize(std::string &input, std::string& lang, bool &lowercase) {
+std::vector <std::string> nlu::tokenize(std::string &input, std::string& lang, bool lowercase) {
   tokenizer * tokenizer_tmp = new tokenizer(lang,lowercase);
   std::vector <std::string> to_return = tokenizer_tmp->tokenize(input);
   delete tokenizer_tmp;
   return to_return;
 }
 
-std::string nlu::tokenize_str(std::string &input, std::string& lang, bool &lowercase) {
+std::string nlu::tokenize_str(std::string &input, std::string& lang, bool lowercase) {
   tokenizer * tokenizer_tmp = new tokenizer(lang,lowercase);
   std::string to_return = tokenizer_tmp->tokenize_str(input);
   delete tokenizer_tmp;
   return to_return;
 }
 
-std::string nlu::detokenize_str(std::string &input, std::string& lang, bool &lowercase) {
+std::string nlu::detokenize_str(std::string &input, std::string& lang, bool lowercase) {
   tokenizer * tokenizer_tmp = new tokenizer(lang,lowercase);
   std::string to_return = tokenizer_tmp->detokenize_str(input);
   delete tokenizer_tmp;
   return to_return;
+}
+
+std::vector <std::string> nlu::tokenize(std::string &input, std::string& lang) {
+    return tokenize(input,lang, false);
+}
+
+std::string nlu::tokenize_str(std::string &input, std::string& lang) {
+    return tokenize_str(input,lang, false);
+}
+
+std::string nlu::detokenize_str(std::string &input, std::string& lang) {
+    return detokenize_str(input,lang, false);
 }
 

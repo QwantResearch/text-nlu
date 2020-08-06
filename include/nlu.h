@@ -72,9 +72,12 @@ class nlu
         std::vector<std::string> getDomains();
         bool getLocal();
         void setDebugMode(int debug_mode);
-        std::vector <std::string> tokenize(std::string &input, std::string &lang, bool &lowercase);
-        std::string tokenize_str(std::string &input, std::string &lang, bool &lowercase);
-        std::string detokenize_str(std::string &input, std::string &lang, bool &lowercase);
+        std::vector <std::string> tokenize(std::string &input, std::string &lang, bool lowercase);
+        std::vector <std::string> tokenize(std::string &input, std::string &lang);
+        std::string tokenize_str(std::string &input, std::string &lang, bool lowercase);
+        std::string detokenize_str(std::string &input, std::string &lang, bool lowercase);
+        std::string tokenize_str(std::string &input, std::string &lang);
+        std::string detokenize_str(std::string &input, std::string &lang);
         Status NLUBatch(
           std::vector<std::vector<std::string> >& batch_tokens,
           std::vector<std::vector<std::string> >& output_batch_tokens,

@@ -225,7 +225,7 @@ Status rest_server::askNLU(
   bool debugmode,
   bool batchmode,
   bool detokenization,
-  vool lowercase
+  bool lowercase
 ) {
   tokenized_text = _nlu->tokenize_str(text, lang, lowercase);
   std::vector<std::string> tokenized_vec = _nlu->tokenize(text, lang, lowercase);
