@@ -13,6 +13,26 @@ export CMAKE_PREFIX_PATH=$PREFIX
 pushd third_party/grpc
     # Based on https://github.com/grpc/grpc/blob/master/test/distrib/cpp/run_distrib_test_cmake.sh
 
+
+    # Install re2
+    pushd third_party/re2
+        mkdir -p cmake/build
+        pushd cmake/build
+            cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON ../..
+            make -j4 install
+        popd
+    popd
+
+
+    # Install abseil-cpp
+    pushd third_party/abseil-cpp
+        mkdir -p cmake/build
+        pushd cmake/build
+            cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON ../..
+            make -j4 install
+        popd
+    popd
+
     # Install c-ares
     pushd third_party/cares/cares
         mkdir -p cmake/build
@@ -37,7 +57,7 @@ pushd third_party/grpc
     pushd third_party/protobuf
         mkdir -p cmake/build
         pushd cmake/build
-            cmake -Dprotobuf_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release ..
+            cmake -Dprotobuf_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release  -Dprotobuf_BUILD_SHARED_LIBS=ON ..
             make -j4 install
         popd
     popd
@@ -46,7 +66,7 @@ pushd third_party/grpc
     rm -rf cmake/build
     mkdir -p cmake/build
     pushd cmake/build
-        cmake -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DgRPC_PROTOBUF_PROVIDER=package -DgRPC_ZLIB_PROVIDER=package -DgRPC_CARES_PROVIDER=package -DgRPC_SSL_PROVIDER=package -DCMAKE_BUILD_TYPE=Release --DCMAKE_INSTALL_PREFIX="${PREFIX}" ../..
+        cmake -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DgRPC_PROTOBUF_PROVIDER=package -DgRPC_ZLIB_PROVIDER=package -DgRPC_CARES_PROVIDER=package -DgRPC_SSL_PROVIDER=package -DgRPC_RE2_PROVIDER=package -DCMAKE_BUILD_TYPE=Release -DgRPC_ABSL_PROVIDER=package --DCMAKE_INSTALL_PREFIX="${PREFIX}" ../..
         # See https://github.com/grpc/grpc/issues/13841
         make -j 4 && make install
     popd
