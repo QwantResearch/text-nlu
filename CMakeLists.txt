@@ -70,7 +70,6 @@ add_executable(${CLASS_EXECUTABLE_API} ${CLASS_SOURCE_API})
 set(LIBS
     ${_GRPC_GRPCPP_UNSECURE}
     ${_PROTOBUF_LIBPROTOBUF}
-    fasttext
     qnlp
     pistache
     pthread
