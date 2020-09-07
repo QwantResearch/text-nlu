@@ -90,6 +90,7 @@ std::vector<std::string> nlu::getDomains() {
     domain_list.push_back(config.name());
   }
 
+  delete server_config;
   return domain_list;
 }
 

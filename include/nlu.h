@@ -68,7 +68,6 @@ class nlu
 {
     public:
         nlu(int debug_mode, std::string model_config_path, std::string tfserving_host);
-        ~nlu(){delete(_tokenizer);};
         std::vector<std::string> getDomains();
         bool getLocal();
         void setDebugMode(int debug_mode);
@@ -94,7 +93,6 @@ class nlu
       shared_ptr<Channel> _channel;
 
       bool _local;
-      tokenizer * _tokenizer;
       int _debug_mode;
       std::string _model_config_path;
 
