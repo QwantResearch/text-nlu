@@ -229,7 +229,7 @@ Status nlu::NLUDecode(
   chars_tensor.mutable_tensor_shape()->add_dim()->set_size(max_length);
   chars_tensor.mutable_tensor_shape()->add_dim()->set_size(max_length_word);
 
-  inputs["chars"] = chars_tensor;
+//  inputs["chars"] = chars_tensor;
 
   // PROTO: lengths_tensor
   tensorflow::TensorProto lengths_tensor;
